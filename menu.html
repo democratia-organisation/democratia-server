@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation de l'API REST</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            color: #555;
+        }
+        code {
+            background-color: #eee;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .endpoint {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .endpoint h2 {
+            color: #0056b3;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Documentation de l'API REST</h1>
+    <p>Bienvenue dans la documentation de votre API REST. Voici les détails pour interagir avec l'API :</p>
+
+    <div class="endpoint">
+        <h2>Obtenir une ressource</h2>
+        <p>Utilisez le lien suivant pour obtenir une ressource spécifique :</p>
+        <p><code>?requete=&lt;requête&gt;</code></p>
+        <p>Exemple : <code>?requete=SELECT * FROM internaute</code></p>
+    </div>
+
+    <div class="endpoint">
+        <h2>Passer des paramètres</h2>
+        <p>Si la requête nécessite des paramètres, ajoutez-les sous la forme d'un tableau JSON :</p>
+        <p><code>?parameters=[&lt;différents paramètres&gt;]</code></p>
+        <p>Exemple : <code>?requete=SELECT * FROM internaute WHERE id_internaute = ?&amp;parameters=[1]</code></p>
+        <p><strong>Note :</strong> Si aucun paramètre n'est requis, il n'est pas nécessaire d'ajouter <code>?parameters</code>.</p>
+    </div>
+
+    <div class="endpoint">
+        <h2>Obtenir les actions par défaut disponibles</h2>
+        <p>Pour obtenir la liste des actions par défaut disponibles dans l'API, utilisez la requête suivante :</p>
+        <p><code>?requete=getMethode</code></p>
+        <p>Cela retournera la documentation complète des méthodes disponibles sans nécessiter de paramètres supplémentaires.</p>
+    </div>
+
+    <div class="endpoint">
+        <h2>Documentation des fonctions disponibles</h2>
+        <p>Voici la liste des fonctions disponibles avec leur résumé :</p>
+        <ul>
+            <li><strong>modifNotif</strong> - Modifier les paramètres de notification d'un utilisateur.</li>
+            <li><strong>ModifInfoInternaute</strong> - Modifier les informations d'un internaute dans la base de données.</li>
+            <li><strong>Signalercommentaire</strong> - Signaler un commentaire problématique.</li>
+            <li><strong>signalergroupe</strong> - Signaler un groupe problématique.</li>
+            <li><strong>signalerproposition</strong> - Signaler une proposition problématique.</li>
+            <li><strong>enregistrerCommentaire</strong> - Enregistrer un commentaire fait par un utilisateur.</li>
+            <li><strong>enregistrerVote</strong> - Enregistrer un vote effectué par un utilisateur.</li>
+            <li><strong>enregistrerChoixVote</strong> - Enregistrer le choix d'un utilisateur lors d'un vote.</li>
+            <li><strong>demanderVote</strong> - Demander des informations sur un vote spécifique.</li>
+            <li><strong>budgetGroupe</strong> - Obtenir le budget utilisé par un groupe.</li>
+            <li><strong>budgetThee</strong> - Obtenir le budget utilisé par un thème spécifique.</li>
+            <li><strong>groupeUtilisatuer</strong> - Obtenir la liste des groupes d'un utilisateur.</li>
+            <li><strong>infoInternaute</strong> - Obtenir les informations personnelles d'un internaute.</li>
+            <li><strong>budgetProposition</strong> - Obtenir le budget associé à une proposition.</li>
+            <li><strong>rechercherInternaute</strong> - Rechercher des internautes en fonction de critères spécifiques.</li>
+            <li><strong>votesEffectues</strong> - Obtenir la liste des votes effectués par un utilisateur.</li>
+            <li><strong>sumThemesGroupe</strong> - Obtenir la somme des thèmes utilisés par un groupe.</li>
+            <li><strong>supprimergroupe</strong> - Supprimer un groupe spécifique de la base de données.</li>
+            <li><strong>supprimerproposition</strong> - Supprimer une proposition de la base de données.</li>
+            <li><strong>Supprimerinternaute</strong> - Supprimer un internaute de la base de données.</li>
+            <li><strong>supprimercommentaire</strong> - Supprimer un commentaire de la base de données.</li>
+            <li><strong>ajouterProposition</strong> - Ajouter une nouvelle proposition à la base de données.</li>
+            <li><strong>AjouterMembre</strong> - Ajouter un membre à un groupe existant.</li>
+            <li><strong>CreerGroupe</strong> - Créer un nouveau groupe avec des paramètres spécifiques.</li>
+            <li><strong>CreerUtilisateur</strong> - Créer un nouvel utilisateur avec ses informations de connexion.</li>
+            <li><strong>demarrerVote</strong> - Démarrer un nouveau vote avec des paramètres définis.</li>
+            <li><strong>reagirComm</strong> - Réagir à un commentaire spécifique.</li>
+            <li><strong>reagircommentaire</strong> - Réagir à un commentaire en utilisant une fonction spécifique.</li>
+            <li><strong>reagirProp</strong> - Réagir à une proposition spécifique.</li>
+        </ul>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 - Documentation API REST</p>
+    </footer>
+</body>
+</html>
