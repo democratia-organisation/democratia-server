@@ -9,24 +9,23 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
 
-if (!isset($_GET["requete"])) {
+if (!isset($_GET["request"])) {
     $host  = $_SERVER['HTTP_HOST'];
-    $extra = 'menu.html';
     if(preg_match("/projets.iut-orsay.fr/",$host)) {
         $host .= "\/saes3-mmarti32\/";
         $uri   = rtrim(dirname("/API/index.php"), '');
-        header("Location: http://$host$uri/$extra");
+        header("Location: http://$host$uri");
         exit;
     }
     else{
-        header("Location: http://$host/$extra");
+        header("Location: http://$host");
         exit;
     }
     
 }
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
 $parameters = isset($_GET["parameters"]) ? json_decode($_GET["parameters"],true) :  [];
-$requete = json_decode($_GET["requete"]);
+$requete = $_GET["request"];
 try {
     $api = new Api();
     $api->verificationValeurDonne($requete);
@@ -95,8 +94,7 @@ try {
             $api->delete($parameters,$requeteFinal);
             break;
         default:
-            new Exception("Aucune methode precise",CodeDeRetourApi::BadRequest->value);
-            break;
+            throw new Exception("Aucune methode precise",CodeDeRetourApi::BadRequest->value);
     } 
       
     }       
