@@ -1,5 +1,18 @@
 <?php
 
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$file = __DIR__ . $uri;
+
+if ($uri !== '/' && file_exists($file)) {
+    return false; 
+}
+
+if (!isset($_GET["request"])) {
+
+    header("Location: /index.html");
+    exit;
+}
+
 require_once "ClassRest.php";
 
 // Ajouter les en-têtes CORS pour rendre l'API accessible par n'importe quel client
@@ -9,20 +22,6 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
 
-if (!isset($_GET["request"])) {
-    $host  = $_SERVER['HTTP_HOST'];
-    if(preg_match("/projets.iut-orsay.fr/",$host)) {
-        $host .= "\/saes3-mmarti32\/";
-        $uri   = rtrim(dirname("/API/index.php"), '');
-        header("Location: http://$host$uri");
-        exit;
-    }
-    else{
-        header("Location: http://$host");
-        exit;
-    }
-    
-}
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
 $parameters = isset($_GET["parameters"]) ? json_decode($_GET["parameters"],true) :  [];
 $requete = $_GET["request"];
