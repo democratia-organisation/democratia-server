@@ -168,7 +168,7 @@ class Api
     }
     public function verificationFormatage(
         array $parameters,
-        string $requete = null
+        ?string $requete = null
     ) : void
     {
         $nombreDeParametereDonne = count($parameters);

@@ -1,6 +1,13 @@
 FROM php:latest
 
-RUN apt-get update --yes && apt-get upgrade --yes && apt-get install git --yes && docker-php-ext-install pdo pdo_mysql
+RUN apt-get update --yes && apt-get upgrade --yes \
+    && apt-get install git $PHPIZE_DEPS --yes \
+    && pecl install xdebug \
+    && docker-php-ext-enable xdebug \
+    && docker-php-ext-install pdo pdo_mysql \
+    && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 COPY . /usr/src/api
 WORKDIR /usr/src/api
