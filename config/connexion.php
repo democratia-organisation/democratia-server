@@ -2,13 +2,6 @@
 
 class Connexion 
 {
-    static private $hostName = 'localhost';
-    static private $database = 'saes3-mmarti32';
-    static private $login = 'saes3-mmarti32';
-    static private $password = 'JPwzfAbGq3EE+Exv';
-
-
-
     static private $attributConnexion = array(
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",        
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -29,23 +22,20 @@ class Connexion
      * @return void
      */
     static public function connect():void {   
-        $h = self::$hostName;
-        $d = self::$database;
-        $l = self::$login;
-        $p = self::$password;
+        // Récupération des variables d'environnement depuis Docker
+        $h = getenv('DB_HOST');
+        $d = getenv('DB_NAME');
+        $l = getenv('DB_USER');
+        
+        // Lecture du mot de passe depuis le fichier secret
+        $passwordFile = getenv('DB_PASSWORD_FILE');
+        $p = ($passwordFile && file_exists($passwordFile)) ? trim(file_get_contents($passwordFile)) : '';
+
         $t = self::$attributConnexion;
         try {
-            self::$pdo = new PDO("mysql:host =$h; dbname=$d",$l,$p,$t);
-            
+            self::$pdo = new PDO("mysql:host=$h;dbname=$d", $l, $p, $t);
         } catch (PDOException $e) {
-            try {
-                $l = 'root';
-                $p = 'Djonodo20050207/';
-                self::$pdo = new PDO("mysql:host =$h; dbname=$d",$l,$p,$t);
-            } catch (PDOException $eBis) {
-                throw new PDOException("Erreur de la connexion au serveur" . " " . $eBis->getMessage(),CodeDeRetourApi::ServiceNonDisponible->value);
-            }
-            
+            throw new PDOException("Erreur de la connexion au serveur : " . $e->getMessage(), CodeDeRetourApi::ServiceUnavailable->value);
         }
     }
 }
