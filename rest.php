@@ -1,5 +1,10 @@
 <?php
 
+// Activation de l'affichage des erreurs pour le débogage
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $file = __DIR__ . $uri;
 
@@ -48,9 +53,6 @@ try {
                 $api->verificationBonneAction($requete,$test);
                 $requeteFinal = $requete;
             }
-            else {
-                throw new InvalidArgumentException("Aucune requête ou methode specifiee.",CodeDeRetourApi::BadRequest->value);
-            }
             $api->get($parameters,$requeteFinal);
             break;
         case 'POST':
@@ -60,9 +62,6 @@ try {
                 $api->verificationFormatage($parameters,$requete);
                 $api->verificationBonneAction($requete,$test);
                 $requeteFinal = $requete;
-            }
-            else {
-                throw new InvalidArgumentException("Aucune requête ou methode specifiee.",CodeDeRetourApi::BadRequest->value);
             }
             $api->post($parameters,$requeteFinal);
             break;
@@ -74,9 +73,6 @@ try {
                 $api->verificationBonneAction($requete,$test);
                 $requeteFinal = $requete;
             }
-            else {
-                throw new InvalidArgumentException("Aucune requête ou methode specifiee.",CodeDeRetourApi::BadRequest->value);
-            }
             $api->patch($parameters,$requeteFinal);
             break;
         case 'DELETE':
@@ -86,9 +82,6 @@ try {
                 $api->verificationFormatage($parameters,$requete);
                 $api->verificationBonneAction($requete,$test);
                 $requeteFinal = $requete;
-            }
-            else {
-                throw new InvalidArgumentException("Aucune requête ou methode specifiee.",CodeDeRetourApi::BadRequest->value);
             }
             $api->delete($parameters,$requeteFinal);
             break;
@@ -105,4 +98,3 @@ try {
 }
 http_response_code($api->getCode());
 echo json_encode($api->getTabRetour());
-
