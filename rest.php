@@ -1,36 +1,48 @@
 <?php
 
 // Activation de l'affichage des erreurs pour le débogage
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ERROR | E_PARSE); 
+ini_set('display_errors', 0); // On ne les affiche pas sur la page
 
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$file = __DIR__ . $uri;
+// Nettoyage radical du buffer
+while (ob_get_level()) ob_end_clean();
 
-if ($uri !== '/' && file_exists($file)) {
-    return false; 
+// On traite l'URI seulement si on est sur un serveur web (pas en ligne de commande)
+if (php_sapi_name() !== 'cli') {
+    $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    if ($uri !== '/rest.php' && $uri !== '/' && file_exists(__DIR__ . $uri)) {
+        return false;
+    }
 }
-
-if (!isset($_GET["request"])) {
-
-    header("Location: /index.html");
-    exit;
-}
-
-require_once "ClassRest.php";
-
 // Ajouter les en-têtes CORS pour rendre l'API accessible par n'importe quel client
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
-
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
-$parameters = isset($_GET["parameters"]) ? json_decode($_GET["parameters"],true) :  [];
 $requete = $_GET["request"];
+$parameters = [];
+if (isset($_GET["parameters"])) {
+    // On décode d'abord l'URL (pour les @, :, etc.) puis le JSON
+    $decodedJson = json_decode(urldecode($_GET["parameters"]), true);
+    $parameters = is_array($decodedJson) ? $decodedJson : [];
+}
+
+error_log("METHOD: " . $requestMethod);
+error_log("REQUETE: " . $requete);
+error_log("PARAMS: " . print_r($parameters, true));
+
+// 4. Verification de la requête
+if (!isset($_GET["request"])) {
+    echo json_encode(["success" => false, "message" => "Parametre 'request' manquant"],JSON_UNESCAPED_UNICODE);
+    exit;
+}
 try {
+    if (!file_exists("ClassRest.php")) {
+        throw new Exception("Fichier ClassRest.php introuvable");
+    }
+    require_once "ClassRest.php";
     $api = new Api();
     $api->verificationValeurDonne($requete);
     switch ($requestMethod) {
@@ -44,8 +56,6 @@ try {
                     "message" => "Voici toutes les méthodes par défaults disponibles",
                     "data" => $api->getAvailableMethods()
                 ];
-                http_response_code($api->getCode());
-                echo json_encode($tableauRetourne);
                 exit;
             }
             elseif ($requeteFinal == null){
@@ -87,14 +97,30 @@ try {
             break;
         default:
             throw new Exception("Aucune methode precise",CodeDeRetourApi::BadRequest->value);
-    } 
-      
-    }       
- catch (Exception $e) {
-    $api->setParametreErreur($e->getCode(), $e->getMessage());
-    $api->isSuccess = false;
-    $api->reponseApi();
-    
+    }
+    $retour = $api->getTabRetour();
+    if (empty($retour['data']) && $retour['success'] === true) {
+        $retour['message'] = "Connexion réussie mais aucun résultat trouvé pour cette requête.";
+    }
+}       
+catch (Throwable $e) {
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "error_type" => get_class($e),
+        "message" => $e->getMessage(),
+        "file" => $e->getFile(),
+        "line" => $e->getLine()
+    ],JSON_UNESCAPED_UNICODE);
+    exit;
 }
-http_response_code($api->getCode());
-echo json_encode($api->getTabRetour());
+
+
+// Debug : si c'est vide, on force un message pour comprendre
+if (empty($resultatFinal['data']) && $resultatFinal['success']) {
+    error_log("DEBUG: La requête a réussi mais DATA est vide.");
+}
+$api->reponseApi();
+$resultatFinal = $api->getTabRetour();
+echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE); 
+exit;

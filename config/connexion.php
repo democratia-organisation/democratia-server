@@ -32,10 +32,21 @@ class Connexion
         $p = ($passwordFile && file_exists($passwordFile)) ? trim(file_get_contents($passwordFile)) : '';
 
         $t = self::$attributConnexion;
-        try {
-            self::$pdo = new PDO("mysql:host=$h;dbname=$d", $l, $p, $t);
-        } catch (PDOException $e) {
-            throw new PDOException("Erreur de la connexion au serveur : " . $e->getMessage(), CodeDeRetourApi::ServiceUnavailable->value);
+        $max_retries = 5;
+        $attempts = 0;
+
+        while ($attempts < $max_retries) {
+            try {
+                self::$pdo = new PDO("mysql:host=$h;dbname=$d", $l, $p, $t);
+                return; // <--- TRÈS IMPORTANT : On sort de la fonction dès que ça marche
+            } catch (PDOException $e) {
+                $attempts++;
+                if ($attempts >= $max_retries) {
+                    error_log("Échec final de connexion : " . $e->getMessage());
+                    exit("Erreur : " . $e->getMessage());
+                }
+                sleep(2); 
+            }   
         }
     }
 }

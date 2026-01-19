@@ -135,23 +135,28 @@ class Api
         }
     }
 
-    private function executeRequete(PDO $pdo,
-        string $requete,
-        array $parameters
-    ) : mixed
+    private function executeRequete(PDO $pdo, string $requete, array $parameters): mixed
     {
         try {
-            $requetePrepare = $pdo->prepare($requete,array(PDO::ATTR_CURSOR => PDO::CURSOR_SCROLL,PDO::ERRMODE_EXCEPTION=>true));
+            // On force l'activation des erreurs PDO pour ce statement
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            $requetePrepare = $pdo->prepare($requete);
             $executionReussi = $requetePrepare->execute($parameters);
-            if($requetePrepare===false) throw new RuntimeException("Erreur lors de la preparation de la requete",CodeDeRetourApi::InternalServerError->value);
-            elseif (!$executionReussi) throw new RuntimeException("Erreur lors de l'execution de la requete",CodeDeRetourApi::InternalServerError->value);
-            else {
-                $valeurRetourne = $requetePrepare->fetchAll();
-                $aucunValeurRetourne = count($valeurRetourne) === 0;
-                return $aucunValeurRetourne ? 0 : $valeurRetourne;
+    
+            if (!$executionReussi) {
+                throw new RuntimeException("L'exécution de la requête a échoué.");
             }
-        } catch (PDOException $pDOException) {
-            throw new PDOException("Erreur inattendu au sein du serveur" .  " " . $pDOException->getMessage(),CodeDeRetourApi::InternalServerError->value); 
+    
+            $valeurRetourne = $requetePrepare->fetchAll(PDO::FETCH_ASSOC);
+            
+            // DEBUG : On écrit dans les logs Docker pour voir si on a trouvé Marie
+            error_log("Lignes trouvées dans MySQL : " . count($valeurRetourne));
+            
+            return $valeurRetourne; // On renvoie TOUJOURS le tableau (vide ou plein)
+        } catch (PDOException $e) {
+            error_log("Erreur SQL : " . $e->getMessage());
+            throw new Exception("Erreur SQL : " . $e->getMessage(), 500);
         }
     }
     public function setParametreErreur(int $codeDerreur, 
