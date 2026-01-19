@@ -1,71 +1,56 @@
 <?php
 
 /**
- * Résumé de PatchMethode : enum qui stocke toutes les actions possible pour la méthode patch
+ * Interface commune pour les méthodes de l'API
  */
-interface Methode extends BackedEnum  {
-    
+interface Methode extends BackedEnum {
 }
+
+/**
+ * Méthodes PATCH : Procédures de mise à jour (UPDATE)
+ */
 enum PatchMethode : string implements Methode {
-    case modifNotif = "CALL modifier_config_notifs(?, ?)";
-    case ModifInfoInternaute = "CALL modifier_config_notifs(?,?,?,?,?,?)";
-    case Signalercommentaire = "CALL Signalercommentaire(?)";
-    case signalergroupe = "CALL signalergroupe()";
-    case signalerproposition = "CALL signalerproposition()";
-    case enregistrerCommentaire = "CALL enregistrerCommentaire(?, ?, ?, ?)";
-    case enregistrerVote = "CALL enregistrer_vote(?, ?, ?, ?)";
-    case enregistrerChoixVote = "CALL enregistrer_choix_vote(?, ?)";
-
-
-}
-
- /**
-  * Résumé de GetMethode : enum qui stocke toutes les actions possible pour la méthode get
-  */
- enum GetMethode : string implements Methode  {
-    case demanderVote = "CALL demanderVote(?, ?)";
-    case budgetGroupe = "CALL budget_utilise_groupe(?)";
-    case budgetThee = "CALL budget_utilise_theme(?,?)";
-    case groupeUtilisatuer = "CALL groupes_utilisateur(?)";
-    case  infoInternaute = "CALL infos_internaute(?)";
-    case  budgetProposition = "CALL obtenir_budget_proposition(?)";
-    case rechercherInternaute = "CALL Rechercher_internaute (?,?)";
-    case  votesEffectues = "CALL votes_effectues(?,?)";  
-    case sumThemesGroupe = "CALL sum_themes_groupe(?)";
-
- }
- /**
-  * Résumé de DeleteMethode : enum qui stocke toutes les actions possible pour la méthode Delete
-  */
- enum DeleteMethode : string implements Methode  {
-    case supprimergroupe = "CALL supprimergroupe(?)";
-    case supprimerproposition = "CALL supprimerproposition(?)";
-    case Supprimerinternaute = "CALL Supprimer_internaute(?)";
-    case supprimercommentaire = "CALL supprimercommentaire(?)";
-}
-/**
- * Résumé de PostMethode : enum qui stocke toutes les actions possible pour la méthode Post
- */
-enum PostMethode : string implements Methode  {
-    case ajouterProposition = "CALL ajouterProposition(?,?,?,?)";
-    case AjouterMembre = "CALL Ajouter_membre(?,?)";
-    case CreerGroupe = "CALL Creer_groupe(?,?,?,?,?,?)";
-    case CreerUtilisateur = "CALL Creer_utilisateur(?,?,?,?,?)";
-    case demarrerVote = "CALL demarrer_vote(?,?,?)";
-    case reagirComm = "CALL reagirComm(?,?,?)";
-    case reagircommentaire = "CALL reagircommentaire(?,?,?)";
-    case reagirProp = "CALL reagirProp(?,?,?)";
+    case ModifInfoInternaute = "CALL modifs_infos_internaute(?,?,?,?,?,?)"; // 6 params
+    case SignalerCommentaire = "CALL signaler_commentaire(?)";               // 1 param
+    case SignalerProposition = "CALL signaler_proposition(?)";               // 1 param
 }
 
 /**
- * Résumé de nombreParametre : donne le nombre de parametre que posséde une fonction de la base de donnée
- * @param Methode $enum
- * @return int
+ * Méthodes GET : Fonctions de récupération (SELECT)
+ * Note : La position 0 dans vos données correspond au retour de la fonction, 
+ * nous ne comptons que les paramètres IN (Position >= 1).
  */
-function nombreParametre(
-    Methode $enum,
-) : int {
+enum GetMethode : string implements Methode {
+    case budgetGroupe = "SELECT budget_utilise_groupe(?)";              // 1 param
+    case budgetTheme = "SELECT budget_utilise_theme(?,?)";              // 2 params
+    case groupeUtilisateur = "SELECT groupes_utilisateur(?)";           // 1 param
+    case infoInternaute = "SELECT infos_internaute(?)";                 // 1 param
+    case budgetProposition = "SELECT obtenir_budget_proposition(?)";    // 1 param
+    case rechercherInternaute = "SELECT rechercher_internaute(?,?)";    // 2 params
+    case votesEffectues = "SELECT votes_effectues(?,?)";                // 2 params
+}
+
+/**
+ * Méthodes DELETE : Procédures de suppression
+ */
+enum DeleteMethode : string implements Methode {
+    case SupprimerInternaute = "CALL supprimer_internaute(?)";           // 1 param
+}
+
+/**
+ * Méthodes POST : Procédures de création (INSERT)
+ */
+enum PostMethode : string implements Methode {
+    case ajouterProposition = "CALL ajouter_proposition(?,?,?,?,?)";    // 5 params
+    case AjouterMembre = "CALL ajouter_membre(?,?)";                     // 2 params
+    case CreerGroupe = "CALL creer_groupe(?,?,?,?,?,?)";               // 6 params
+    case CreerUtilisateur = "CALL creer_utilisateur(?,?,?,?,?)";       // 5 params
+}
+
+/**
+ * Calcule le nombre de paramètres (?) dans la chaîne SQL
+ */
+function nombreParametre(Methode $enum): int {
     $matches = [];    
-    $aDesParametre = preg_match_all('/\?/',$enum->value,$matches);
-    return $aDesParametre ? count($matches[0]) : 0;
+    return preg_match_all('/\?/', $enum->value, $matches);
 }
