@@ -24,11 +24,10 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requete = $_GET["request"];
 $parameters = [];
 if (isset($_GET["parameters"])) {
-    // On décode d'abord l'URL (pour les @, :, etc.) puis le JSON
     $decodedJson = json_decode(urldecode($_GET["parameters"]), true);
-    $parameters = is_array($decodedJson) ? $decodedJson : [];
+    // On transforme le dictionnaire en simple liste de valeurs
+    $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
-
 error_log("METHOD: " . $requestMethod);
 error_log("REQUETE: " . $requete);
 error_log("PARAMS: " . print_r($parameters, true));
@@ -48,7 +47,7 @@ try {
     switch ($requestMethod) {
         case 'GET':
             $test = "/SELECT/i";
-            $requeteFinal = $api->tryGetAction($requete,GetMethode::groupeUtilisatuer);
+            $requeteFinal = $api->tryGetAction($requete,GetMethode::class);
             if ($requete=="getMethode") {
                 http_response_code($api->getCode());
                 $tableauRetourne = [
@@ -67,7 +66,7 @@ try {
             break;
         case 'POST':
             $test = "/INSERT/i";
-            $requeteFinal = $api->tryGetAction($requete,PostMethode::CreerUtilisateur);
+            $requeteFinal = $api->tryGetAction($requete,PostMethode::class);
             if ($requeteFinal == null){
                 $api->verificationFormatage($parameters,$requete);
                 $api->verificationBonneAction($requete,$test);
@@ -77,7 +76,7 @@ try {
             break;
         case 'PATCH':
             $test = "/UPDATE/i";
-            $requeteFinal = $api->tryGetAction($requete,PatchMethode::ModifInfoInternaute);
+            $requeteFinal = $api->tryGetAction($requete,PatchMethode::class);
             if ($requeteFinal == null){
                 $api->verificationFormatage($parameters,$requete);
                 $api->verificationBonneAction($requete,$test);
@@ -87,7 +86,7 @@ try {
             break;
         case 'DELETE':
             $test = "/DELETE/i";
-            $requeteFinal = $api->tryGetAction($requete,DeleteMethode::supprimergroupe);
+            $requeteFinal = $api->tryGetAction($requete,DeleteMethode::class);
             if ($requeteFinal == null){
                 $api->verificationFormatage($parameters,$requete);
                 $api->verificationBonneAction($requete,$test);

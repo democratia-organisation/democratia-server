@@ -97,18 +97,14 @@ class Api
         $this->arrayRetour["message"] = $this->messageDeRetour;
         $this->arrayRetour["data"] = $this->valeurRetourne;
     }
-    public function tryGetAction(string $requete,Methode $methode) : mixed
+    public function tryGetAction(string $requete, string $enumClass): ?string
     {
-        $i = 0;
-        $tableauElement = $this->formatMethods($methode::cases());
-        foreach ($tableauElement as $methode) {
-            foreach ($methode as $key => $value) {
-                if ($key == "name" && $key === $requete) {
-                    return $methode::tryFrom($value);
-                    
-                }
+        // On boucle sur tous les cas de l'énumération fournie (ex: PostMethode)
+        foreach ($enumClass::cases() as $case) {
+            // Si le nom du case (ex: "CreerUtilisateur") correspond à la requête
+            if ($case->name === $requete) {
+                return $case->value; // On retourne le SQL (ex: "CALL Creer_utilisateur(...)")
             }
-            
         }
         return null;
     }

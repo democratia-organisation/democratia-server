@@ -8,7 +8,7 @@ interface Methode extends BackedEnum  {
 }
 enum PatchMethode : string implements Methode {
     case modifNotif = "CALL modifier_config_notifs(?, ?)";
-    case ModifInfoInternaute = "CALLL modifier_config_notifs(?,?,?,?,?,?)";
+    case ModifInfoInternaute = "CALL modifier_config_notifs(?,?,?,?,?,?)";
     case Signalercommentaire = "CALL Signalercommentaire(?)";
     case signalergroupe = "CALL signalergroupe()";
     case signalerproposition = "CALL signalerproposition()";
@@ -50,7 +50,7 @@ enum PostMethode : string implements Methode  {
     case ajouterProposition = "CALL ajouterProposition(?,?,?,?)";
     case AjouterMembre = "CALL Ajouter_membre(?,?)";
     case CreerGroupe = "CALL Creer_groupe(?,?,?,?,?,?)";
-    case CreerUtilisateur = "CALL Creer_utilisateur(?,?,?)";
+    case CreerUtilisateur = "CALL Creer_utilisateur(?,?,?,?,?)";
     case demarrerVote = "CALL demarrer_vote(?,?,?)";
     case reagirComm = "CALL reagirComm(?,?,?)";
     case reagircommentaire = "CALL reagircommentaire(?,?,?)";
