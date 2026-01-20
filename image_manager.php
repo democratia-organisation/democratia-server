@@ -6,11 +6,16 @@ require_once 'ClassRest.php';
 function UploadGroupeImage(int $id_groupe) : void  {
     $api = new Api();
     $targetDir = __DIR__ . "/uploads/";
-    $maxFileSize = 2 * 1024 * 1024; // Limite à 2 Mo
+    $maxFileSize = 10 * 1024 * 1024; // Limite à 10 Mo
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
         $file = $_FILES['image'];
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+        if ($_FILES['image']['size']>$maxFileSize) {
+            http_response_code(CodeDeRetourApi::NoContent->value);
+            die(json_encode(["success" => false, "message" => "Fichier trop grop", "status" => CodeDeRetourApi::NoContent->value]));
+        }
         
         // 1. Vérification de l'extension
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
