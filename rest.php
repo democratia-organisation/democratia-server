@@ -21,7 +21,7 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
-$requete = $_GET["request"];
+$requete = isset($_GET["request"]) ? trim($_GET["request"]) : '';
 $parameters = [];
 if (isset($_GET["parameters"])) {
     $decodedJson = json_decode(urldecode($_GET["parameters"]), true);
@@ -55,7 +55,7 @@ try {
                 exit;
             }
             elseif ($requete=="obtenirImage") {
-                GetGroupeImage($parameters[0]);
+                GetGroupeImage(intval($parameters[0]));
             }
             elseif ($requeteFinal == null){
                 $api->verificationFormatage($parameters,$requete);
@@ -73,7 +73,7 @@ try {
                 $requeteFinal = $requete;
             }
             elseif ($requete=="publierImage") {
-                UploadGroupeImage($parameters[0]);
+                UploadGroupeImage(intval($parameters[0]));
             }
             $api->post($parameters,$requeteFinal);
             break;
