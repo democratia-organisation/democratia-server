@@ -28,7 +28,12 @@ if (strpos($request, '%20') !== false) {
 }
 $parameters = [];
 if (isset($_GET["parameters"])) {
-    $decodedJson = json_decode(urldecode($_GET["parameters"]), true);
+    $paramsRaw = $_GET["parameters"];
+    // Si on détecte un double encodage (présence de %25)
+    if (strpos($paramsRaw, '%25') !== false) {
+        $paramsRaw = urldecode($paramsRaw);
+    }
+    $decodedJson = json_decode($_GET["parameters"], true);
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 error_log("METHOD: " . $requestMethod);
