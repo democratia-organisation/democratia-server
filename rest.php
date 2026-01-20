@@ -21,7 +21,11 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
-$requete = isset($_GET["request"]) ? trim($_GET["request"]) : '';
+$requete = isset($_GET["request"]);
+
+if (strpos($request, '%20') !== false) {
+    $request = urldecode($request);
+}
 $parameters = [];
 if (isset($_GET["parameters"])) {
     $decodedJson = json_decode(urldecode($_GET["parameters"]), true);
