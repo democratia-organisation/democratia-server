@@ -38,7 +38,7 @@ if (!isset($_GET["request"])) {
 }
 try {
     require_once "ClassRest.php";
-    require_once "image_managet.php";
+    require_once "image_manager.php";
     $api = new Api();
     $api->verificationValeurDonne($requete);
     switch ($requestMethod) {
