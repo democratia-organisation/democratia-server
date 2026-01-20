@@ -54,6 +54,11 @@ enum CodeDeRetourApi : int {
     case Conflict = 409;
 
     /**
+     * 412 Malicious : du code malicieux a été détecté
+     */
+    case Malicious = 412;
+
+    /**
      * 422 Unprocessable Entity : La requête est bien formée mais contient des erreurs de validation.
      */
     case UnprocessableEntity = 422;

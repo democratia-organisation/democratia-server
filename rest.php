@@ -16,7 +16,7 @@ if (php_sapi_name() !== 'cli') {
 }
 // Ajouter les en-têtes CORS pour rendre l'API accessible par n'importe quel client
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
@@ -25,7 +25,6 @@ $requete = $_GET["request"];
 $parameters = [];
 if (isset($_GET["parameters"])) {
     $decodedJson = json_decode(urldecode($_GET["parameters"]), true);
-    // On transforme le dictionnaire en simple liste de valeurs
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 error_log("METHOD: " . $requestMethod);
@@ -38,10 +37,8 @@ if (!isset($_GET["request"])) {
     exit;
 }
 try {
-    if (!file_exists("ClassRest.php")) {
-        throw new Exception("Fichier ClassRest.php introuvable");
-    }
     require_once "ClassRest.php";
+    require_once "image_managet.php";
     $api = new Api();
     $api->verificationValeurDonne($requete);
     switch ($requestMethod) {
@@ -57,6 +54,9 @@ try {
                 ];
                 exit;
             }
+            elseif ($requete=="obtenirImage") {
+                GetGroupeImage($parameters[0]);
+            }
             elseif ($requeteFinal == null){
                 $api->verificationFormatage($parameters,$requete);
                 $api->verificationBonneAction($requete,$test);
@@ -71,6 +71,9 @@ try {
                 $api->verificationFormatage($parameters,$requete);
                 $api->verificationBonneAction($requete,$test);
                 $requeteFinal = $requete;
+            }
+            elseif ($requete=="publierImage") {
+                UploadGroupeImage($parameters[0]);
             }
             $api->post($parameters,$requeteFinal);
             break;

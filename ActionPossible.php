@@ -28,6 +28,7 @@ enum GetMethode : string implements Methode {
     case budgetProposition = "SELECT obtenir_budget_proposition(?)";    // 1 param
     case rechercherInternaute = "SELECT rechercher_internaute(?,?)";    // 2 params
     case votesEffectues = "SELECT votes_effectues(?,?)";                // 2 params
+    case obtenirImage = "obtenirImage";
 }
 
 /**
@@ -45,6 +46,7 @@ enum PostMethode : string implements Methode {
     case AjouterMembre = "CALL ajouter_membre(?,?)";                     // 2 params
     case CreerGroupe = "CALL creer_groupe(?,?,?,?,?,?)";               // 6 params
     case CreerUtilisateur = "CALL creer_utilisateur(?,?,?,?,?)";       // 5 params
+    case publierImage = "publierImage";
 }
 
 /**
