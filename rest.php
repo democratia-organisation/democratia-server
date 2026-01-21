@@ -42,8 +42,8 @@ while (strpos($requete, '%') !== false) {
     $requete = urldecode($requete);
 
 }
-
 $requete = trim($requete);
+$requete = preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u', '', $requeteRaw);
 $parameters = [];
 if (isset($_GET["parameters"])) {
     $paramsRaw = $_GET["parameters"];
