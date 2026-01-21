@@ -127,6 +127,12 @@ try {
     if (empty($retour['data']) && $retour['success'] === true) {
         $retour['message'] = "Connexion réussie mais aucun résultat trouvé pour cette requête.";
     }
+    array_walk_recursive($retour, function (&$item) {
+        if (is_string($item)) {
+            // Supprime les caractères de contrôle qui cassent le JSON
+            $item = preg_replace('/[\x00-\x1F\x7F]/u', '', $item);
+        }
+    });
 }       
 catch (Throwable $e) {
     http_response_code(500);
@@ -147,5 +153,5 @@ if (empty($resultatFinal['data']) && $resultatFinal['success']) {
 }
 $api->reponseApi();
 $resultatFinal = $api->getTabRetour();
-echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE); 
+echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR); 
 exit;
