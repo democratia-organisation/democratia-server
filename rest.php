@@ -21,11 +21,29 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
-$requete = isset($_GET["request"]);
 
-if (strpos($request, '%20') !== false) {
-    $request = urldecode($request);
+
+$requeteRaw = $_GET["request"] ?? "";
+
+if ($requeteRaw === null) {
+
+
+    http_response_code(400);
+
+    echo json_encode(["success" => false, "message" => "no parameters"]);
+
+    exit; // On arrête le script proprement
+
 }
+$requete = $requeteRaw;
+
+while (strpos($requete, '%') !== false) {
+
+    $requete = urldecode($requete);
+
+}
+
+$requete = trim($requete);
 $parameters = [];
 if (isset($_GET["parameters"])) {
     $paramsRaw = $_GET["parameters"];
@@ -33,18 +51,13 @@ if (isset($_GET["parameters"])) {
     if (strpos($paramsRaw, '%25') !== false) {
         $paramsRaw = urldecode($paramsRaw);
     }
-    $decodedJson = json_decode($_GET["parameters"], true);
+    $decodedJson = json_decode(urldecode($_GET["parameters"]), true);
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 error_log("METHOD: " . $requestMethod);
 error_log("REQUETE: " . $requete);
 error_log("PARAMS: " . print_r($parameters, true));
 
-// 4. Verification de la requête
-if (!isset($_GET["request"])) {
-    echo json_encode(["success" => false, "message" => "Parametre 'request' manquant"],JSON_UNESCAPED_UNICODE);
-    exit;
-}
 try {
     require_once "ClassRest.php";
     require_once "image_manager.php";
@@ -72,6 +85,7 @@ try {
                 $requeteFinal = $requete;
             }
             $api->get($parameters,$requeteFinal);
+	    error_log($requeteFinal);
             break;
         case 'POST':
             $test = "/INSERT/i";
