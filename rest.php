@@ -43,7 +43,7 @@ while (strpos($requete, '%') !== false) {
 
 }
 $requete = trim($requete);
-$requete = preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u', '', $requeteRaw);
+$requete = preg_replace('/^[\pZ\pC]+|[\pZ\pC]+$/u', '', $requete);
 $parameters = [];
 if (isset($_GET["parameters"])) {
     $paramsRaw = $_GET["parameters"];
