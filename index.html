@@ -67,16 +67,16 @@
 <body>
     <div class="container">
         <h1>Documentation de l'API REST - Democratia</h1>
-        <p>Utilisez l'URL de base suivie des paramètres <code>request</code> et <code>parameters</code>.</p>
 
         <div class="endpoint">
             <h2>Structure des requêtes</h2>
-            <p><strong>URL :</strong> <code>rest.php?request=NOM_ACTION&parameters=["VAL1", "VAL2"]</code></p>
+            <p><strong>URL :</strong> <code>rest.php?request=NOM_ACTION parameters=["VAL1", "VAL2"]</code></p>
             <ul>
-                <li><code>request</code> : Nom de l'action définie dans l'API.</li>
-                <li><code>parameters</code> : Tableau JSON encodé contenant les valeurs dans l'ordre de la procédure.</li>
+                <li><code>request</code> : Nom de l'action à faire dans l'API.</li>
+                <li><code>parameters</code> : Tableau encodé contenant les valeurs dans l'ordre de la procédure. ou de l'apparition des points d'intérogation</li>
             </ul>
-            <p><strong>Exemple :</strong> <code>rest.php?request=infoInternaute&parameters=["3"]</code></p>
+            <p><strong>Exemple :</strong> <code>rest.php?request=infoInternaute parameters=["3"]</code></p>
+            <small>Pour des questions de lisibilité, il y a pas le & mais il est évidemment à inclurer dans la requete, en collant  tous les caractères</small>
         </div>
         <div class="endpoint">
             <h2>🔐 Requêtes SQL Personnalisées</h2>
@@ -86,34 +86,34 @@
             </div>
             <table>
                 <tr><th>Verbe HTTP</th><th>Mot-clé SQL requis</th><th>Exemple de <code>request</code></th></tr>
-                <tr><td><span class="method-badge get">GET</span></td><td><code>SELECT</code></td><td><code>SELECT * FROM internaute WHERE id=?</code></td></tr>
-                <tr><td><span class="method-badge post">POST</span></td><td><code>INSERT</code></td><td><code>INSERT INTO groupe (nom) VALUES (?)</code></td></tr>
-                <tr><td><span class="method-badge patch">PATCH</span></td><td><code>UPDATE</code></td><td><code>UPDATE internaute SET mail=? WHERE id=?</code></td></tr>
-                <tr><td><span class="method-badge delete">DELETE</span></td><td><code>DELETE</code></td><td><code>DELETE FROM proposition WHERE id=?</code></td></tr>
+                <tr><td><span class="method get">GET</span></td><td><code>SELECT</code></td><td><code>SELECT * FROM internaute WHERE id=?</code></td></tr>
+                <tr><td><span class="method post">POST</span></td><td><code>INSERT</code></td><td><code>INSERT INTO groupe (nom) VALUES (?)</code></td></tr>
+                <tr><td><span class="method patch">PATCH</span></td><td><code>UPDATE</code></td><td><code>UPDATE internaute SET mail=? WHERE id=?</code></td></tr>
+                <tr><td><span class="method delete">DELETE</span></td><td><code>DELETE</code></td><td><code>DELETE FROM proposition WHERE id=?</code></td></tr>
             </table>
         </div>
         <div class="endpoint">
             <h2>📋 Auto-documentation</h2>
-            <p>Pour obtenir la liste en temps réel de toutes les méthodes intégrées au serveur :</p>
-            <p><code>GET rest.php?request=getMethode</code></p>
+            <p>Pour obtenir la liste de toutes les méthodes intégrées au serveur :</p>
+            <p> <span class="method get">GET</span> <code>rest.php?request=getMethode</code></p>
             <p><em>Aucun paramètre supplémentaire n'est requis pour cette commande.</em></p>
         </div>
 
 
-        <h2><span class="method get">GET</span> Récupération de données (Fonctions)</h2>
+        <h2><span class="method get">GET</span> Récupération de données</h2>
         <div class="endpoint">
             <div class="param-item">
                 <strong>groupeUtilisateur</strong> : Liste des groupes d'un utilisateur.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_id_internaute</td><td>INT</td></tr>
+                    <tr><td>1</td><td>id_internaute</td><td>INT</td></tr>
                 </table>
             </div>
             <div class="param-item">
                 <strong>infoInternaute</strong> : Informations de profil d'un internaute.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_id_internaute</td><td>INT</td></tr>
+                    <tr><td>1</td><td>id_internaute</td><td>INT</td></tr>
                 </table>
             </div>
             <div class="param-item">
@@ -128,23 +128,23 @@
                 <strong>budgetGroupe</strong> : Budget utilisé par un groupe.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_id_groupe</td><td>INT</td></tr>
+                    <tr><td>1</td><td>id_groupe</td><td>INT</td></tr>
                 </table>
             </div>
             <div class="param-item">
                 <strong>budgetTheme</strong> : Budget utilisé par thématique dans un groupe.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_id_thematique</td><td>INT</td></tr>
-                    <tr><td>2</td><td>p_id_groupe</td><td>INT</td></tr>
+                    <tr><td>1</td><td>id_thematique</td><td>INT</td></tr>
+                    <tr><td>2</td><td>id_groupe</td><td>INT</td></tr>
                 </table>
             </div>
             <div class="param-item">
                 <strong>votesEffectues</strong> : Historique des votes.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_id_vote</td><td>INT</td></tr>
-                    <tr><td>2</td><td>p_id_groupe</td><td>INT</td></tr>
+                    <tr><td>1</td><td>id_vote</td><td>INT</td></tr>
+                    <tr><td>2</td><td>id_groupe</td><td>INT</td></tr>
                 </table>
             </div>
             <div class="param-item">
@@ -164,40 +164,40 @@
             </div>
         </div>
 
-        <h2><span class="method post">POST</span> Création (Procédures)</h2>
+        <h2><span class="method post">POST</span> Création d'éléments</h2>
         <div class="endpoint">
             <div class="param-item">
                 <strong>CreerUtilisateur</strong> : Inscription d'un nouvel utilisateur.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_nom</td><td>VARCHAR</td></tr>
-                    <tr><td>2</td><td>p_prenom</td><td>VARCHAR</td></tr>
-                    <tr><td>3</td><td>p_adr_postal</td><td>VARCHAR</td></tr>
-                    <tr><td>4</td><td>p_mail</td><td>VARCHAR</td></tr>
-                    <tr><td>5</td><td>p_hmdp</td><td>VARCHAR (Hash)</td></tr>
+                    <tr><td>1</td><td>nom</td><td>VARCHAR</td></tr>
+                    <tr><td>2</td><td>prenom</td><td>VARCHAR</td></tr>
+                    <tr><td>3</td><td>adr_postal</td><td>VARCHAR</td></tr>
+                    <tr><td>4</td><td>mail</td><td>VARCHAR</td></tr>
+                    <tr><td>5</td><td>hashageMDP</td><td>VARCHAR</td></tr>
                 </table>
             </div>
             <div class="param-item">
                 <strong>CreerGroupe</strong> : Création d'un groupe de démocratie.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_nom</td><td>VARCHAR</td></tr>
-                    <tr><td>2</td><td>p_couleur</td><td>VARCHAR</td></tr>
-                    <tr><td>3</td><td>p_image</td><td>VARCHAR</td></tr>
-                    <tr><td>4</td><td>p_budget</td><td>INT</td></tr>
-                    <tr><td>5</td><td>p_nbj_dft_vote</td><td>INT</td></tr>
-                    <tr><td>6</td><td>p_nbj_dft_discuss</td><td>INT</td></tr>
+                    <tr><td>1</td><td>nom</td><td>VARCHAR</td></tr>
+                    <tr><td>2</td><td>couleur</td><td>VARCHAR</td></tr>
+                    <tr><td>3</td><td>image</td><td>VARCHAR</td></tr>
+                    <tr><td>4</td><td>budget</td><td>INT</td></tr>
+                    <tr><td>5</td><td>nbj_dft_vote</td><td>INT</td></tr>
+                    <tr><td>6</td><td>nbj_dft_discuss</td><td>INT</td></tr>
                 </table>
             </div>
             <div class="param-item">
                 <strong>ajouterProposition</strong> : Soumettre une idée.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_titre</td><td>VARCHAR</td></tr>
-                    <tr><td>2</td><td>p_id_thematique</td><td>INT</td></tr>
-                    <tr><td>3</td><td>p_description</td><td>TEXT</td></tr>
-                    <tr><td>4</td><td>p_budget</td><td>INT</td></tr>
-                    <tr><td>5</td><td>p_id_groupe</td><td>INT</td></tr>
+                    <tr><td>1</td><td>titre</td><td>VARCHAR</td></tr>
+                    <tr><td>2</td><td>id_thematique</td><td>INT</td></tr>
+                    <tr><td>3</td><td>description</td><td>TEXT</td></tr>
+                    <tr><td>4</td><td>budget</td><td>INT</td></tr>
+                    <tr><td>5</td><td>id_groupe</td><td>INT</td></tr>
                 </table>
             </div>
             <div class="param-item">
@@ -223,15 +223,39 @@
                 <strong>ModifInfoInternaute</strong> : Modifier le profil utilisateur.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_id_internaute</td><td>INT</td></tr>
-                    <tr><td>2-6</td><td colspan="2">Nom, Prénom, Adresse, Mail, Hash MDP</td></tr>
+                    <tr><td>1</td><td>id_internaute</td><td>INT</td></tr>
+                    <tr>
+                        <td>2</td>
+                        <td>nom_internaute</td>
+                        <td>VARCHAR</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>prenom_internaute</td>
+                        <td>VARCHAR</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>addresse_postale</td>
+                        <td>VARCHAR</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>courriel</td>
+                        <td>VARCHAR</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>hashageMDP</td>
+                        <td>VARCHAR</td>
+                    </tr>
                 </table>
             </div>
             <div class="param-item">
                 <strong>SignalerCommentaire</strong> : Signaler un abus.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_id_commentaire</td><td>INT</td></tr>
+                    <tr><td>1</td><td>id_commentaire</td><td>INT</td></tr>
                 </table>
             </div>
         </div>
@@ -239,16 +263,16 @@
         <h2><span class="method delete">DELETE</span> Suppression</h2>
         <div class="endpoint">
             <div class="param-item">
-                <strong>SupprimerInternaute</strong> : Supprimer un compte.
+                <strong>SupprimerInternaute</strong> : Supprimer un utilisateur.
                 <table>
                     <tr><th>Pos</th><th>Paramètre</th><th>Type</th></tr>
-                    <tr><td>1</td><td>p_id_internaute</td><td>INT</td></tr>
+                    <tr><td>1</td><td>id_internaute</td><td>INT</td></tr>
                 </table>
             </div>
         </div>
 
         <footer>
-            <p>&copy; 2026 - Documentation API Democratia - Mise à jour le 19 Janvier 2026</p>
+            <p>&copy; 2026 - Documentation API Democratia - Mise à jour le 23 Janvier 2026</p>
         </footer>
     </div>
 </body>
