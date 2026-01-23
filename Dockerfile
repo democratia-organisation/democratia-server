@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM php:latest
 
 RUN apt-get update --yes && apt-get upgrade --yes \
@@ -6,6 +7,7 @@ RUN apt-get update --yes && apt-get upgrade --yes \
     libjpeg-dev \
     libfreetype6-dev \
     $PHPIZE_DEPS  \
+    openssh-client \
     && cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini \
     && pecl install xdebug \
     && docker-php-ext-enable xdebug \
@@ -16,6 +18,8 @@ RUN apt-get update --yes && apt-get upgrade --yes \
     && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
-COPY . /usr/src/api
-WORKDIR /usr/src/api
+WORKDIR /usr/src/server
+RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
+RUN --mount=type=ssh git clone git@github.com:zykogithub/democratia-server.git .
+
 CMD ["php", "-S", "0.0.0.0:80"]

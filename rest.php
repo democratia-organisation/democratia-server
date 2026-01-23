@@ -1,20 +1,16 @@
 <?php
 
-// Activation de l'affichage des erreurs pour le débogage
 error_reporting(E_ERROR | E_PARSE); 
-ini_set('display_errors', 0); // On ne les affiche pas sur la page
+ini_set('display_errors', 0);
 
-// Nettoyage radical du buffer
 while (ob_get_level()) ob_end_clean();
 
-// On traite l'URI seulement si on est sur un serveur web (pas en ligne de commande)
 if (php_sapi_name() !== 'cli') {
     $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
     if ($uri !== '/rest.php' && $uri !== '/' && file_exists(__DIR__ . $uri)) {
         return false;
     }
 }
-// Ajouter les en-têtes CORS pour rendre l'API accessible par n'importe quel client
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
@@ -32,7 +28,7 @@ if ($requeteRaw === null) {
 
     echo json_encode(["success" => false, "message" => "no parameters"]);
 
-    exit; // On arrête le script proprement
+    exit;
 
 }
 $requete = $requeteRaw;
@@ -47,16 +43,13 @@ $requete = preg_replace('/\s+$/', '', $requete);
 $parameters = [];
 if (isset($_GET["parameters"])) {
     $paramsRaw = $_GET["parameters"];
-    // Si on détecte un double encodage (présence de %25)
+
     if (strpos($paramsRaw, '%25') !== false) {
         $paramsRaw = urldecode($paramsRaw);
     }
     $decodedJson = json_decode(urldecode($_GET["parameters"]), true);
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
-error_log("METHOD: " . $requestMethod);
-error_log("REQUETE: " . $requete);
-error_log("PARAMS: " . print_r($parameters, true));
 
 try {
     require_once "ClassRest.php";
@@ -74,6 +67,7 @@ try {
                     "message" => "Voici toutes les méthodes par défaults disponibles",
                     "data" => $api->getAvailableMethods()
                 ];
+                echo json_encode($tableauRetourne, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR); 
                 exit;
             }
             elseif ($requete=="obtenirImage") {
@@ -129,7 +123,7 @@ try {
     }
     array_walk_recursive($retour, function (&$item) {
         if (is_string($item)) {
-            // Supprime les caractères de contrôle qui cassent le JSON
+        
             $item = preg_replace('/[\x00-\x1F\x7F]/u', '', $item);
         }
     });
@@ -146,11 +140,6 @@ catch (Throwable $e) {
     exit;
 }
 
-
-// Debug : si c'est vide, on force un message pour comprendre
-if (empty($resultatFinal['data']) && $resultatFinal['success']) {
-    error_log("DEBUG: La requête a réussi mais DATA est vide.");
-}
 $api->reponseApi();
 $resultatFinal = $api->getTabRetour();
 echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR); 
