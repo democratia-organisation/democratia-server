@@ -129,7 +129,7 @@ try {
     });
 }       
 catch (Throwable $e) {
-    http_response_code(500);
+    http_response_code($e->getCode());
     echo json_encode([
         "success" => false,
         "error_type" => get_class($e),
