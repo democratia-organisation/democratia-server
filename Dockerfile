@@ -19,7 +19,6 @@ RUN apt-get update --yes && apt-get upgrade --yes \
     && echo "xdebug.log=/tmp/xdebug.log" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 WORKDIR /usr/src/server
-RUN mkdir -p -m 0700 ~/.ssh && ssh-keyscan github.com >> ~/.ssh/known_hosts
-RUN --mount=type=ssh git clone git@github.com:zykogithub/democratia-server.git .
+COPY . .
 
 CMD ["php", "-S", "0.0.0.0:80"]
