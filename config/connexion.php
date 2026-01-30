@@ -2,26 +2,25 @@
 
 class Connexion 
 {
-    static private $attributConnexion = array(
+    private static  $attributConnexion = [
         PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",        
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
-        
-        );
+        PDO::ATTR_EMULATE_PREPARES => false,        
+    ];
 
-    static private $pdo;
+    private static $pdo;
 
     /**
      * return a PDO object
      * @return PDO
      */
-    static public function pdo(): PDO{ return self::$pdo;}
+    public static function pdo(): PDO{ return self::$pdo;}
     /**
      * create a connection between the database and the device
      * @return void
      */
-    static public function connect():void {   
+    public static function connect():void {   
         // Récupération des variables d'environnement depuis Docker
         $h = getenv('DB_HOST');
         $d = getenv('DB_NAME');
@@ -38,7 +37,7 @@ class Connexion
         while ($attempts < $max_retries) {
             try {
                 self::$pdo = new PDO("mysql:host=$h;dbname=$d", $l, $p, $t);
-                return; // <--- TRÈS IMPORTANT : On sort de la fonction dès que ça marche
+                return;
             } catch (PDOException $e) {
                 $attempts++;
                 if ($attempts >= $max_retries) {
