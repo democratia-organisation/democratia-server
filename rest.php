@@ -71,7 +71,7 @@ try {
                 exit;
             }
             elseif ($requete=="obtenirImage") {
-                GetGroupeImage(intval($parameters[0]));
+                GetGroupeImage($parameters[0]);
             }
             elseif ($requeteFinal == null){
                 $api->verificationFormatage($parameters,$requete);
@@ -90,7 +90,7 @@ try {
                 $requeteFinal = $requete;
             }
             elseif ($requete=="publierImage") {
-                UploadGroupeImage(intval($parameters[0]));
+                UploadGroupeImage($parameters[0]);
             }
             $api->post($parameters,$requeteFinal);
             break;

@@ -49,26 +49,13 @@ function UploadGroupeImage(string $id_groupe) : void  {
     }
 }
 
-function GetGroupeImage(string $id_groupe): void {
-    $api = new Api();
+function GetGroupeImage(string $nom_image): void {
     try {
-        $api->get([$id_groupe], "SELECT image FROM groupe WHERE id_groupe = UUID_TO_BIN(?, 1)");
 
-        
-        $fileName = ($api->getTabRetour() && !empty($api->getTabRetour()['image'])) ? $api->getTabRetour()['image'] : 'default-groupe.png.jpeg';
+        $fileName = file_exists(__DIR__ . "/images/".$nom_image) ? $nom_image : 'default-groupe.png.jpeg';
         $filePath = __DIR__ . "/images/" . $fileName;
-
-        
-        if (!file_exists($filePath)) {
-            http_response_code(404);
-            echo json_encode(["error" => "Image physique introuvable"]);
-            return;
-        }
-
-        
         $mimeType = mime_content_type($filePath);
-        
-        
+                
         if (ob_get_level()) ob_end_clean();
         
         
