@@ -3,7 +3,7 @@
 
 require_once 'ClassRest.php';
 
-function UploadGroupeImage(int $id_groupe) : void  {
+function UploadGroupeImage(string $id_groupe) : void  {
     $api = new Api();
     $targetDir = __DIR__ . "/images/";
     $maxFileSize = 10 * 1024 * 1024; 
@@ -37,7 +37,7 @@ function UploadGroupeImage(int $id_groupe) : void  {
     
         
         if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-            $api->patch([$newName,$id_groupe],"UPDATE groupe SET image=? WHERE id_groupe=?");
+            $api->patch([$newName,$id_groupe],"UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 1)");
             http_response_code(CodeDeRetourApi::OK->value);
             echo json_encode(["success" => true, "data" => [], "status" => CodeDeRetourApi::OK->value]);
             exit;
@@ -49,10 +49,10 @@ function UploadGroupeImage(int $id_groupe) : void  {
     }
 }
 
-function GetGroupeImage(int $id_groupe): void {
+function GetGroupeImage(string $id_groupe): void {
     $api = new Api();
     try {
-        $api->get([$id_groupe], "SELECT image FROM groupe WHERE id_groupe = ?");
+        $api->get([$id_groupe], "SELECT image FROM groupe WHERE id_groupe = UUID_TO_BIN(?, 1)");
 
         
         $fileName = ($api->getTabRetour() && !empty($api->getTabRetour()['image'])) ? $api->getTabRetour()['image'] : 'default-groupe.png.jpeg';
