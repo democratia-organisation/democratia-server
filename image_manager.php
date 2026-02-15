@@ -5,10 +5,10 @@ require_once 'ClassRest.php';
 
 function UploadGroupeImage(int $id_groupe) : void  {
     $api = new Api();
-    $targetDir = __DIR__ . "/uploads/";
+    $targetDir = __DIR__ . "/images/";
     $maxFileSize = 10 * 1024 * 1024; 
 
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) { 
         $file = $_FILES['image'];
         $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
