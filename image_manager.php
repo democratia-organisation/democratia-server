@@ -37,7 +37,7 @@ function UploadGroupeImage(string $id_groupe) : void  {
     
         
         if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-            $api->patch([$newName,$id_groupe],"UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 1)");
+            $api->patch([$newName,$id_groupe],"UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)");
             http_response_code(CodeDeRetourApi::OK->value);
             echo json_encode(["success" => true, "data" => [], "status" => CodeDeRetourApi::OK->value]);
             exit;
