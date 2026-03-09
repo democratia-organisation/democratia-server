@@ -1,5 +1,10 @@
 <?php
 
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\Core\JWK;
+use Jose\Component\Signature\Algorithm\HS256;
+use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\Serializer\CompactSerializer;
 require_once "ClassRest.php";
 require_once "image_manager.php";
 
@@ -57,12 +62,14 @@ if (isset($_GET["parameters"])) {
 
 try {
     $header = getallheaders();
-    if (!isset($header["beares"])) 
+    if (!isset($header["Bearer"]) && $requete!="login") 
         throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
-    else {
-        // TODO : vérifier que la clé JWT est valide
+    else if ($requete=="login" && $requestMethod == "GET")  {
+        # TODO : vérifier que l'user est valide
+        # TODO : générer la clé JWT
+        # TODO : renvoyer la clé JWT
     }
-
+    // TODO : vérifier que la clé JWT est valide
     $api = new Api();
     $api->verificationValeurDonne($requete);
     switch ($requestMethod) {
@@ -81,11 +88,6 @@ try {
             }
             elseif ($requete=="obtenirImage") {
                 GetGroupeImage($parameters[0]);
-            }
-            elseif ($requete=="login") {
-                # TODO : vérifier que l'user est valide
-                # TODO : générer la clé JWT
-                # TODO : renvoyer la clé JWT
             }
             elseif ($requeteFinal == null){
                 $api->verificationFormatage($parameters,$requete);

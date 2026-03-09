@@ -1,0 +1,14 @@
+{
+    "require": {
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-gd": "*",
+        "ext-zip": "*",
+        "web-token/jwt-framework": "^3.4"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}
