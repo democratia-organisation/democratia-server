@@ -16,6 +16,10 @@ header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
+$header = get_headers($_SERVER['REQUEST_URI']);
+if (!isset($header["beares"])) 
+    throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
+
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
 
 
@@ -72,6 +76,11 @@ try {
             }
             elseif ($requete=="obtenirImage") {
                 GetGroupeImage($parameters[0]);
+            }
+            elseif ($requete=="login") {
+                # TODO : vérifier que l'user est valide
+                # TODO : générer la clé JWT
+                # TODO : renvoyer la clé JWT
             }
             elseif ($requeteFinal == null){
                 $api->verificationFormatage($parameters,$requete);
