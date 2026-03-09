@@ -1,10 +1,12 @@
 <?php
 
 use Jose\Component\Core\AlgorithmManager;
-use Jose\Component\Core\JWK;
-use Jose\Component\Signature\Algorithm\HS256;
+use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\ES256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
+
+require_once 'vendor/autoload.php';
 require_once "ClassRest.php";
 require_once "image_manager.php";
 
@@ -23,6 +25,7 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
+#17 
 
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
@@ -62,12 +65,34 @@ if (isset($_GET["parameters"])) {
 
 try {
     $header = getallheaders();
-    if (!isset($header["Bearer"]) && $requete!="login") 
+    if (empty($header["Bearer"]) && $requete!="login") 
         throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
     else if ($requete=="login" && $requestMethod == "GET")  {
-        # TODO : vérifier que l'user est valide
-        # TODO : générer la clé JWT
-        # TODO : renvoyer la clé JWT
+
+        // Generate an EC key on the P-256 curve
+        $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
+
+        $algorithmManager = new AlgorithmManager([new ES256()]);
+        $jwsBuilder = new JWSBuilder($algorithmManager);
+
+        $payload = json_encode([
+            'iss' => "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+            'aud' => "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+            'sub' => 'user-42',
+            'iat' => time(),
+            'exp' => time() + 3600,
+        ]);
+
+        $jws = $jwsBuilder
+            ->create()
+            ->withPayload($payload)
+            ->addSignature($privateKey, ['alg' => 'ES256'])
+            ->build();
+
+        $token = (new CompactSerializer())->serialize($jws);
+        http_response_code(CodeDeRetourApi::OK->value);
+        echo json_encode([["data"] => ["API_KEY" => $token]]);
+        exit;
     }
     // TODO : vérifier que la clé JWT est valide
     $api = new Api();
