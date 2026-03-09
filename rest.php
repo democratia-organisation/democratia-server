@@ -1,5 +1,8 @@
 <?php
 
+require_once "ClassRest.php";
+require_once "image_manager.php";
+
 error_reporting(E_ERROR | E_PARSE); 
 ini_set('display_errors', 0);
 
@@ -15,13 +18,6 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
-
-$header = get_headers($_SERVER['REQUEST_URI']);
-if (!isset($header["beares"])) 
-    throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
-else {
-    // TODO : vérifier que la clé JWT est valide
-}
 
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
@@ -60,8 +56,13 @@ if (isset($_GET["parameters"])) {
 }
 
 try {
-    require_once "ClassRest.php";
-    require_once "image_manager.php";
+    $header = getallheaders();
+    if (!isset($header["beares"])) 
+        throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
+    else {
+        // TODO : vérifier que la clé JWT est valide
+    }
+
     $api = new Api();
     $api->verificationValeurDonne($requete);
     switch ($requestMethod) {
