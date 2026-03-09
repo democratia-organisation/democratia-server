@@ -3,3 +3,5 @@ images/
 *.txt
 *.sql
 vendor
+config/private.key
+.env

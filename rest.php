@@ -5,6 +5,7 @@ use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\ES256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
+use Jose\Component\Signature\JWSVerifier;
 
 require_once 'vendor/autoload.php';
 require_once "ClassRest.php";
@@ -15,41 +16,28 @@ ini_set('display_errors', 0);
 
 while (ob_get_level()) ob_end_clean();
 
-if (php_sapi_name() !== 'cli') {
-    $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    if ($uri !== '/rest.php' && $uri !== '/' && file_exists(__DIR__ . $uri)) {
-        return false;
-    }
-}
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
-#17 
-
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
-
-
 $requeteRaw = $_GET["request"] ?? "";
+$uri = getenv("ENVIRONNEMENT") == "developpment" ? "http://" : "https://" ; // TODO : ajouter le nécessaire pour du https
+$uri.=$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
 if ($requeteRaw === null) {
 
-
     http_response_code(400);
-
     echo json_encode(["success" => false, "message" => "no parameters"]);
-
     exit;
 
 }
 $requete = $requeteRaw;
 
-while (strpos($requete, '%') !== false) {
-
+while (strpos($requete, '%') !== false) 
     $requete = urldecode($requete);
 
-}
 $requete = trim($requete);
 $requete = preg_replace('/\s+$/', '', $requete);
 $parameters = [];
@@ -63,21 +51,28 @@ if (isset($_GET["parameters"])) {
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 
+$csrfToken = bin2hex(random_bytes(32));
+
+$keyFile = __DIR__ . '/config/private.key';
+if (file_exists($keyFile)) 
+    $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
+else {
+    $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
+    file_put_contents($keyFile, json_encode($privateKey->jsonSerialize()));
+}
+
 try {
     $header = getallheaders();
-    if (empty($header["Bearer"]) && $requete!="login") 
+    if (empty($header["Authorization"]) && $requete!="login" && empty($header["X-CSRF-TOKEN"])) 
         throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
     else if ($requete=="login" && $requestMethod == "GET")  {
-
-        // Generate an EC key on the P-256 curve
-        $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
 
         $algorithmManager = new AlgorithmManager([new ES256()]);
         $jwsBuilder = new JWSBuilder($algorithmManager);
 
         $payload = json_encode([
-            'iss' => "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
-            'aud' => "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'],
+            'iss' => $uri,
+            'aud' => $uri,
             'sub' => 'user-42',
             'iat' => time(),
             'exp' => time() + 3600,
@@ -91,10 +86,21 @@ try {
 
         $token = (new CompactSerializer())->serialize($jws);
         http_response_code(CodeDeRetourApi::OK->value);
-        echo json_encode([["data"] => ["API_KEY" => $token]]);
+        echo json_encode(["data" => ["API_KEY" => $token, "CSRF_TOKEN" => $csrfToken]]);
         exit;
     }
-    // TODO : vérifier que la clé JWT est valide
+
+    $algorithmManager = new AlgorithmManager([new ES256()]);
+    $jwsVerifier = new JWSVerifier($algorithmManager);
+
+    $token = str_replace('Bearer ', '', $header['Authorization'] ?? '');
+    $jws = (new CompactSerializer())->unserialize($token);
+
+    $isValid = $jwsVerifier->verifyWithKey($jws, $privateKey, 0);
+
+    if (!$isValid) throw new Exception("Token invalide", CodeDeRetourApi::Unauthorized->value);
+
+
     $api = new Api();
     $api->verificationValeurDonne($requete);
     switch ($requestMethod) {
@@ -120,7 +126,6 @@ try {
                 $requeteFinal = $requete;
             }
             $api->get($parameters,$requeteFinal);
-	    error_log($requeteFinal);
             break;
         case 'POST':
             $test = "/INSERT/i";
