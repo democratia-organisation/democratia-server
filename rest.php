@@ -19,6 +19,10 @@ header("Content-Type: application/json");
 $header = get_headers($_SERVER['REQUEST_URI']);
 if (!isset($header["beares"])) 
     throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
+else {
+    // TODO : vérifier que la clé JWT est valide
+}
+
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
 
