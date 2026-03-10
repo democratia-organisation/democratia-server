@@ -6,6 +6,7 @@ use Jose\Component\Signature\Algorithm\ES256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\JWSVerifier;
+use Symfony\Component\Dotenv\Dotenv;
 
 require_once 'vendor/autoload.php';
 require_once "ClassRest.php";
@@ -23,8 +24,10 @@ header("Content-Type: application/json");
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
 $requeteRaw = $_GET["request"] ?? "";
-$uri = getenv("ENVIRONNEMENT") == "developpment" ? "http://" : "https://" ; // TODO : ajouter le nécessaire pour du https
-$uri.=$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+$dotenv = new Dotenv();
+$dotenv->load(__DIR__.'/.env');
+$uri = $_ENV['ENVIRONNEMENT'] == "developpment" ? "http://" : "https://" ; // TODO : ajouter le nécessaire pour du https
+$uri.=$_SERVER['HTTP_HOST'];
 
 if ($requeteRaw === null) {
 
@@ -51,8 +54,6 @@ if (isset($_GET["parameters"])) {
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 
-$csrfToken = bin2hex(random_bytes(32));
-
 $keyFile = __DIR__ . '/config/private.key';
 if (file_exists($keyFile)) 
     $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
@@ -63,30 +64,43 @@ else {
 
 try {
     $header = getallheaders();
-    if (empty($header["Authorization"]) && $requete!="login" && empty($header["X-CSRF-TOKEN"])) 
+    if (empty($header["Authorization"]) && $requete!="login") 
         throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
     else if ($requete=="login" && $requestMethod == "GET")  {
-
+        // TODO : vérifier que $parameters[0] est un utilisateur existant
         $algorithmManager = new AlgorithmManager([new ES256()]);
         $jwsBuilder = new JWSBuilder($algorithmManager);
 
-        $payload = json_encode([
+        $payloadAcces = json_encode([
             'iss' => $uri,
             'aud' => $uri,
-            'sub' => 'user-42',
+            'sub' => $parameters[0],
             'iat' => time(),
             'exp' => time() + 3600,
+        ]);
+        $payloadRefresh = json_encode([
+            'iss' => $uri,
+            'aud' => $uri,
+            'sub' => $parameters[0],
+            'iat' => time(),
+            'exp' => time() + 3600*24*15,
         ]);
 
         $jws = $jwsBuilder
             ->create()
-            ->withPayload($payload)
+            ->withPayload($payloadAcces)
+            ->addSignature($privateKey, ['alg' => 'ES256'])
+            ->build();
+        $jwsRefresh = $jwsBuilder
+            ->create()
+            ->withPayload($payloadRefresh)
             ->addSignature($privateKey, ['alg' => 'ES256'])
             ->build();
 
-        $token = (new CompactSerializer())->serialize($jws);
+        $tokenAccess = (new CompactSerializer())->serialize($jws);
+        $tokenRefresh = (new CompactSerializer())->serialize($jwsRefresh);
         http_response_code(CodeDeRetourApi::OK->value);
-        echo json_encode(["data" => ["API_KEY" => $token, "CSRF_TOKEN" => $csrfToken]]);
+        echo json_encode(["data" => ["API_KEY" => $tokenAccess, "REFRESH" => $tokenRefresh]]);
         exit;
     }
 
@@ -98,7 +112,12 @@ try {
 
     $isValid = $jwsVerifier->verifyWithKey($jws, $privateKey, 0);
 
-    if (!$isValid) throw new Exception("Token invalide", CodeDeRetourApi::Unauthorized->value);
+    if (!$isValid) throw new Exception("Token invalide", CodeDeRetourApi::Malicious->value);
+    $payload = json_decode($jws->getPayload(), true);
+    if ($payload["exp"] <= time()) {
+        throw new Exception("Error Processing Request", CodeDeRetourApi::Conflict->value);
+        
+    }
 
 
     $api = new Api();
