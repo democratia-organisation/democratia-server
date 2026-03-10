@@ -2,6 +2,8 @@
 
 FROM php:8.2-apache
 
+USER user
+
 RUN apt-get update && apt-get install --yes --no-install-recommends \
     libpng-dev \
     libjpeg-dev \
