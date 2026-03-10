@@ -1,43 +1,46 @@
 <?php
 
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\ES256;
+use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\Serializer\CompactSerializer;
+use Jose\Component\Signature\JWSVerifier;
+use Symfony\Component\Dotenv\Dotenv;
+
+require_once 'vendor/autoload.php';
+require_once "ClassRest.php";
+require_once "image_manager.php";
+
 error_reporting(E_ERROR | E_PARSE); 
 ini_set('display_errors', 0);
 
 while (ob_get_level()) ob_end_clean();
 
-if (php_sapi_name() !== 'cli') {
-    $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    if ($uri !== '/rest.php' && $uri !== '/' && file_exists(__DIR__ . $uri)) {
-        return false;
-    }
-}
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PATCH, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json");
 
 $requestMethod = $_SERVER['REQUEST_METHOD']; 
-
-
 $requeteRaw = $_GET["request"] ?? "";
+$dotenv = new Dotenv();
+$dotenv->load(__DIR__.'/.env');
+$uri = $_ENV['ENVIRONNEMENT'] == "developpment" ? "http://" : "https://" ; // TODO : ajouter le nécessaire pour du https
+$uri.=$_SERVER['HTTP_HOST'];
 
 if ($requeteRaw === null) {
 
-
     http_response_code(400);
-
     echo json_encode(["success" => false, "message" => "no parameters"]);
-
     exit;
 
 }
 $requete = $requeteRaw;
 
-while (strpos($requete, '%') !== false) {
-
+while (strpos($requete, '%') !== false) 
     $requete = urldecode($requete);
 
-}
 $requete = trim($requete);
 $requete = preg_replace('/\s+$/', '', $requete);
 $parameters = [];
@@ -51,9 +54,72 @@ if (isset($_GET["parameters"])) {
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 
+$keyFile = __DIR__ . '/config/private.key';
+if (file_exists($keyFile)) 
+    $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
+else {
+    $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
+    file_put_contents($keyFile, json_encode($privateKey->jsonSerialize()));
+}
+
 try {
-    require_once "ClassRest.php";
-    require_once "image_manager.php";
+    $header = getallheaders();
+    if (empty($header["Authorization"]) && $requete!="login") 
+        throw new Exception("Entête incorrect",CodeDeRetourApi::Unauthorized->value);
+    else if ($requete=="login" && $requestMethod == "GET")  {
+        // TODO : vérifier que $parameters[0] est un utilisateur existant
+        $algorithmManager = new AlgorithmManager([new ES256()]);
+        $jwsBuilder = new JWSBuilder($algorithmManager);
+
+        $payloadAcces = json_encode([
+            'iss' => $uri,
+            'aud' => $uri,
+            'sub' => $parameters[0],
+            'iat' => time(),
+            'exp' => time() + 3600,
+        ]);
+        $payloadRefresh = json_encode([
+            'iss' => $uri,
+            'aud' => $uri,
+            'sub' => $parameters[0],
+            'iat' => time(),
+            'exp' => time() + 3600*24*15,
+        ]);
+
+        $jws = $jwsBuilder
+            ->create()
+            ->withPayload($payloadAcces)
+            ->addSignature($privateKey, ['alg' => 'ES256'])
+            ->build();
+        $jwsRefresh = $jwsBuilder
+            ->create()
+            ->withPayload($payloadRefresh)
+            ->addSignature($privateKey, ['alg' => 'ES256'])
+            ->build();
+
+        $tokenAccess = (new CompactSerializer())->serialize($jws);
+        $tokenRefresh = (new CompactSerializer())->serialize($jwsRefresh);
+        http_response_code(CodeDeRetourApi::OK->value);
+        echo json_encode(["data" => ["API_KEY" => $tokenAccess, "REFRESH" => $tokenRefresh]]);
+        exit;
+    }
+
+    $algorithmManager = new AlgorithmManager([new ES256()]);
+    $jwsVerifier = new JWSVerifier($algorithmManager);
+
+    $token = str_replace('Bearer ', '', $header['Authorization'] ?? '');
+    $jws = (new CompactSerializer())->unserialize($token);
+
+    $isValid = $jwsVerifier->verifyWithKey($jws, $privateKey, 0);
+
+    if (!$isValid) throw new Exception("Token invalide", CodeDeRetourApi::Malicious->value);
+    $payload = json_decode($jws->getPayload(), true);
+    if ($payload["exp"] <= time()) {
+        throw new Exception("Error Processing Request", CodeDeRetourApi::Conflict->value);
+        
+    }
+
+
     $api = new Api();
     $api->verificationValeurDonne($requete);
     switch ($requestMethod) {
@@ -79,7 +145,6 @@ try {
                 $requeteFinal = $requete;
             }
             $api->get($parameters,$requeteFinal);
-	    error_log($requeteFinal);
             break;
         case 'POST':
             $test = "/INSERT/i";
