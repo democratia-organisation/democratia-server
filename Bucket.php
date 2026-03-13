@@ -4,33 +4,44 @@ final class Bucket
 {
     private int $nombreBilles;
     private int $duree;
-    private static int $MAXIMUM_BILLES = 1_000_000;
+    private string $mailUser;
+    public static int $MAXIMUM_BILLES = 1_000;
+    private static string $FOLDER_NAME = "bucket";
 
 
-    public function __construct() {
-        $this->nombreBilles = 1000;
-        $this->duree = 0;
+    private function __construct(string $mailUser, int $nombreBilles = 0, ?int $time = null) {
+        $this->nombreBilles = $nombreBilles;
+        $this->duree = $time ?? time();
+        $this->mailUser = $mailUser;
     }
-
-    public function getRatio() : float {
-        
-        return 0;
+    
+    public static function getRatio (string $mailUser) : float {
+        $bucket = Bucket::deserialiser($mailUser);
+        return $bucket->calcul();   
     }
 
     public function serialiser() : bool {
-        return true;
+        $tableau = [
+            "nombreBilles" => $this->nombreBilles,
+            "time" => $this->duree,
+            "mailUser" => $this->mailUser,
+        ];
+        $nomDuFichier = Bucket::$FOLDER_NAME."/".urlencode($this->mailUser).".json";
+        $chaine = json_encode($tableau);
+        $file = fopen($nomDuFichier,'w');
+        $value = fwrite($file,$chaine);
+        return is_numeric($value);
     }
 
-    public function deserialiser() : Bucket {
-        return new Bucket();
+    private static function deserialiser(string $mailUser) : Bucket {
+        $nomDuFichier = Bucket::$FOLDER_NAME."/".urlencode($mailUser).".json";
+        $file = fopen($nomDuFichier,'r');
+        $value = fread($file,filesize($nomDuFichier));
+        $tableau = json_decode($value,true);
+        return new Bucket($mailUser,$tableau["nombreBilles"],$tableau["time"]);
     }
 
     private function calcul() : float {
-        return 0;
+        return $this->nombreBilles / 3600;
     }
-
-    private function obtenirLaDuree(int $time) : int {
-        return 0;   
-    }
-    
 }
