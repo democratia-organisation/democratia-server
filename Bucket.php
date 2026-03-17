@@ -1,23 +1,39 @@
 <?php
 
+/**
+ * Représente une
+ */
 final class Bucket
 {
     private int $nombreBilles;
     private int $duree;
     private string $mailUser;
-    public static int $MAXIMUM_BILLES = 1_000;
+    public static int $MAXIMUM_BILLES_USER = 1_000;
+    public static int $MAXIMUM_BILLES_GLOBAL = 5_000_000;
     private static string $FOLDER_NAME = "bucket";
 
 
-    private function __construct(string $mailUser, int $nombreBilles = 0, ?int $time = null) {
+    private function __construct(string $mailUser, int $nombreBilles = 0, int $time) {
         $this->nombreBilles = $nombreBilles;
-        $this->duree = $time ?? time();
+        $this->duree = $time; // changer le temps que si il est à une heure pile
         $this->mailUser = $mailUser;
     }
     
     public static function getRatio (string $mailUser) : float {
         $bucket = Bucket::deserialiser($mailUser);
         return $bucket->calcul();   
+    }
+
+    public static function getGlobalUsage() : float {
+        $directory = opendir(Bucket::$FOLDER_NAME);
+        $totalBucket = 0;
+        while ($fichier = readdir($directory)) {
+            if ($fichier != '.' && $fichier != '..') {
+                $bucket = Bucket::deserialiser($fichier);
+                $totalBucket += $bucket->nombreBilles;
+            }
+        }
+        return $totalBucket;
     }
 
     public function serialiser() : bool {
