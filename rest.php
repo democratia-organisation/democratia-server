@@ -28,10 +28,11 @@ $dotenv = new Dotenv();
 $dotenv->load(__DIR__.'/.env');
 $uri = $_ENV['ENVIRONNEMENT'] == "developpment" ? "http://" : "https://" ; // TODO : ajouter le nécessaire pour du https
 $uri.=$_SERVER['HTTP_HOST'];
+$account;
 
 if ($requeteRaw === null) {
 
-    http_response_code(400);
+    http_response_code(CodeDeRetourApi::BadRequest->value);
     echo json_encode(["success" => false, "message" => "no parameters"]);
     exit;
 
@@ -116,8 +117,15 @@ try {
     $payload = json_decode($jws->getPayload(), true);
     if ($payload["exp"] <= time()) {
         throw new Exception("Error Processing Request", CodeDeRetourApi::Conflict->value);
-        
     }
+    $account = $payload['sub'];
+    $nombreBille = Bucket::getRatio($account);
+    if ($nombreBille>=Bucket::$MAXIMUM_BILLES_USER) 
+        throw new Exception("Le nombre de requete par l'utilisateur a été atteint",CodeDeRetourApi::UnprocessableEntity->value);
+    
+    // TODO vérifier le nombre global de billes utilisés de tous les utilisateurs
+    // TODO : vérifier le header
+
 
 
     $api = new Api();
