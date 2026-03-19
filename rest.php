@@ -105,8 +105,8 @@ try {
             ->addSignature($privateKey, ['alg' => 'ES256'])
             ->build();
 
-        $tokenAccess = (new CompactSerializer())->serialize($jws);
-        $tokenRefresh = (new CompactSerializer())->serialize($jwsRefresh);
+        $tokenAccess = new CompactSerializer()->serialize($jws);
+        $tokenRefresh = new CompactSerializer()->serialize($jwsRefresh);
         http_response_code(CodeDeRetourApi::OK->value);
         echo json_encode(["data" => ["API_KEY" => $tokenAccess, "REFRESH" => $tokenRefresh]]);
         exit;
@@ -119,10 +119,7 @@ try {
     $isValid = $jwsVerifier->verifyWithKey($jws, $privateKey, 0);
     if (!$isValid) throw new Exception("Token invalide", CodeDeRetourApi::Malicious->value);
     $payload = json_decode($jws->getPayload(), true);
-    if ($payload["exp"] <= time()) {
-        throw new Exception("Error Processing Request", CodeDeRetourApi::Conflict->value);
-    }
-    
+    if ($payload["exp"] <= time()) throw new Exception("Le token a expiré", CodeDeRetourApi::Conflict->value);
     $headerCheckerManager = new HeaderCheckerManager([new AlgorithmChecker(['ES256'])], [new JWSTokenSupport()]);
     $headerCheckerManager->check($jwt, 0);
     $nombreBille = Bucket::getRatio($account);
