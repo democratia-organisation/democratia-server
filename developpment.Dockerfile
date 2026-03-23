@@ -2,6 +2,7 @@
 FROM php:latest
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 RUN apt-get update --yes && apt-get upgrade --yes \
     && apt-get install --yes git  \
@@ -13,15 +14,19 @@ RUN apt-get update --yes && apt-get upgrade --yes \
     unzip \
     $PHPIZE_DEPS  \
     openssh-client \
-    && cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini \
-    && pecl install xdebug \
-    && docker-php-ext-enable xdebug \
-    && docker-php-ext-install pdo pdo_mysql gd zip \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    # Configuration complète de Xdebug
-    && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    wget
+RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini
+RUN wget https://github.com/php/pie/releases/latest/download/pie.phar  
+RUN chmod +x pie.phar  
+RUN mv pie.phar /usr/local/bin/pie
+RUN pie install xdebug/xdebug
+RUN pie install osmanov/pecl-ev
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+        && docker-php-ext-install pdo pdo_mysql gd zip \
+        # Configuration de Xdebug
+        && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+        && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+        && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 WORKDIR /usr/src/server
 COPY composer.json .

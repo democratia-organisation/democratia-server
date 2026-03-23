@@ -7,10 +7,17 @@ use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\JWSVerifier;
 use Symfony\Component\Dotenv\Dotenv;
+use Jose\Component\Checker\HeaderCheckerManager;
+use Jose\Component\Checker\AlgorithmChecker;
+use Jose\Component\Checker\InvalidHeaderException;
+use Jose\Component\Signature\JWSTokenSupport;
+
 
 require_once 'vendor/autoload.php';
 require_once "ClassRest.php";
 require_once "image_manager.php";
+require_once "Bucket.php";
+require_once "cleaningBucket.php";
 
 error_reporting(E_ERROR | E_PARSE); 
 ini_set('display_errors', 0);
@@ -28,10 +35,11 @@ $dotenv = new Dotenv();
 $dotenv->load(__DIR__.'/.env');
 $uri = $_ENV['ENVIRONNEMENT'] == "developpment" ? "http://" : "https://" ; // TODO : ajouter le nécessaire pour du https
 $uri.=$_SERVER['HTTP_HOST'];
+$account;
 
 if ($requeteRaw === null) {
 
-    http_response_code(400);
+    http_response_code(CodeDeRetourApi::BadRequest->value);
     echo json_encode(["success" => false, "message" => "no parameters"]);
     exit;
 
@@ -83,7 +91,7 @@ try {
             'aud' => $uri,
             'sub' => $parameters[0],
             'iat' => time(),
-            'exp' => time() + 3600*24*15,
+            'exp' => time() + 3600*24*7,
         ]);
 
         $jws = $jwsBuilder
@@ -97,28 +105,26 @@ try {
             ->addSignature($privateKey, ['alg' => 'ES256'])
             ->build();
 
-        $tokenAccess = (new CompactSerializer())->serialize($jws);
-        $tokenRefresh = (new CompactSerializer())->serialize($jwsRefresh);
+        $tokenAccess = new CompactSerializer()->serialize($jws);
+        $tokenRefresh = new CompactSerializer()->serialize($jwsRefresh);
         http_response_code(CodeDeRetourApi::OK->value);
         echo json_encode(["data" => ["API_KEY" => $tokenAccess, "REFRESH" => $tokenRefresh]]);
         exit;
     }
-
+    $account = $payload['sub'];
     $algorithmManager = new AlgorithmManager([new ES256()]);
     $jwsVerifier = new JWSVerifier($algorithmManager);
-
     $token = str_replace('Bearer ', '', $header['Authorization'] ?? '');
-    $jws = (new CompactSerializer())->unserialize($token);
-
+    $jws = new CompactSerializer()->unserialize($token);
     $isValid = $jwsVerifier->verifyWithKey($jws, $privateKey, 0);
-
     if (!$isValid) throw new Exception("Token invalide", CodeDeRetourApi::Malicious->value);
     $payload = json_decode($jws->getPayload(), true);
-    if ($payload["exp"] <= time()) {
-        throw new Exception("Error Processing Request", CodeDeRetourApi::Conflict->value);
-        
-    }
-
+    if ($payload["exp"] <= time()) throw new Exception("Le token a expiré", CodeDeRetourApi::Conflict->value);
+    $headerCheckerManager = new HeaderCheckerManager([new AlgorithmChecker(['ES256'])], [new JWSTokenSupport()]);
+    $headerCheckerManager->check($jwt, 0);
+    $nombreBille = Bucket::getRatio($account);
+    if ($nombreBille>=Bucket::$MAXIMUM_BILLES_USER) 
+        throw new Exception("Le nombre de requete par l'utilisateur a été atteint",CodeDeRetourApi::UnprocessableEntity->value);
 
     $api = new Api();
     $api->verificationValeurDonne($requete);
@@ -194,7 +200,8 @@ try {
     });
 }       
 catch (Throwable $e) {
-    http_response_code($e->getCode());
+    if (is_a($e,InvalidHeaderException::class)) http_response_code(CodeDeRetourApi::Malicious->value);
+    else http_response_code($e->getCode());
     echo json_encode([
         "success" => false,
         "error_type" => get_class($e),

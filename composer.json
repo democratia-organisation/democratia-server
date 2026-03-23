@@ -11,5 +11,8 @@
         "allow-plugins": {
             "php-http/discovery": true
         }
+    },
+    "require-dev": {
+        "jetbrains/phpstorm-stubs": "dev-master"
     }
 }
