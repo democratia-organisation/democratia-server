@@ -13,6 +13,7 @@
         }
     },
     "require-dev": {
-        "jetbrains/phpstorm-stubs": "dev-master"
+        "jetbrains/phpstorm-stubs": "dev-master",
+        "laravel/pint": "^1.29"
     }
 }
