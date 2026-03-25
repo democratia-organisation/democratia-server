@@ -15,7 +15,7 @@
   },
   "lint-staged": {
     "**/*.php": [
-      "vendor/bin/pint --test"
+      "bun lint-docker.cjs"
     ]
   }
 }

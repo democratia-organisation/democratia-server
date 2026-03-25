@@ -1,19 +1,26 @@
 {
-    "require": {
-        "ext-pdo": "*",
-        "ext-pdo_mysql": "*",
-        "ext-gd": "*",
-        "ext-zip": "*",
-        "web-token/jwt-framework": "^3.4",
-        "symfony/dotenv" :"^8.0"
-    },
-    "config": {
-        "allow-plugins": {
-            "php-http/discovery": true
-        }
-    },
-    "require-dev": {
-        "jetbrains/phpstorm-stubs": "dev-master",
-        "laravel/pint": "^1.29"
+  "require": {
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "ext-gd": "*",
+    "ext-zip": "*",
+    "web-token/jwt-framework": "^3.4",
+    "symfony/dotenv": "^8.0"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true,
+      "pestphp/pest-plugin": true
     }
+  },
+  "require-dev": {
+    "jetbrains/phpstorm-stubs": "dev-master",
+    "laravel/pint": "^1.29",
+    "pestphp/pest": "^4.4"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  }
 }
