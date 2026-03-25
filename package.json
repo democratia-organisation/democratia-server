@@ -1,0 +1,21 @@
+{
+  "name": "democratia-server",
+  "version": "1.0.0",
+  "description": "Serveur de democratia",
+  "scripts": {
+    "prepare": "husky",
+    "lint": "vendor/bin/pint --test",
+    "lint:fix": "vendor/bin/pint"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.0.0",
+    "@commitlint/config-conventional": "^19.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0"
+  },
+  "lint-staged": {
+    "**/*.php": [
+      "vendor/bin/pint --test"
+    ]
+  }
+}

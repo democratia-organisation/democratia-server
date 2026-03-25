@@ -1,4 +1,10 @@
 # syntax=docker/dockerfile:1
+FROM node:alpine AS node_builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+
+
 FROM php:latest
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -22,13 +28,14 @@ RUN mv pie.phar /usr/local/bin/pie
 RUN pie install xdebug/xdebug
 RUN pie install osmanov/pecl-ev
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-        && docker-php-ext-install pdo pdo_mysql gd zip \
-        # Configuration de Xdebug
-        && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-        && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-        && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    && docker-php-ext-install pdo pdo_mysql gd zip \
+    # Configuration de Xdebug
+    && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 WORKDIR /usr/src/server
+COPY --from=node_builder /app ./node_modules
 COPY composer.json .
 RUN composer install
 COPY . .

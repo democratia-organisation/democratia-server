@@ -26,5 +26,6 @@ COPY composer.json .
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 COPY . .
+RUN rm -rf .husky
 RUN chown -R www-data:www-data /var/www/html \
     && echo "FallbackResource /rest.php" > .htaccess

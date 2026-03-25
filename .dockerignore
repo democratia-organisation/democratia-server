@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log
+vendor
+.env
+.git
+demoratia.session.sql
+.vscode
