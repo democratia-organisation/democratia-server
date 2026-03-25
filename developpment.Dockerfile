@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
-FROM node:alpine AS node_builder
+FROM oven/bun:alpine AS bun_builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+RUN bun install
 
 
 FROM php:latest
@@ -35,7 +35,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 WORKDIR /usr/src/server
-COPY --from=node_builder /app ./node_modules
+COPY --from=bun_builder /app ./node_modules
 COPY composer.json .
 RUN composer install
 COPY . .
