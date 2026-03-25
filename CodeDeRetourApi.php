@@ -1,8 +1,10 @@
 <?php
+
 /**
  * Enumération des codes de retour HTTP standard pour l'API.
  */
-enum CodeDeRetourApi : int {
+enum CodeDeRetourApi: int
+{
     /**
      * 100 Continue : Le serveur a reçu une partie de la requête et attend le reste.
      */
