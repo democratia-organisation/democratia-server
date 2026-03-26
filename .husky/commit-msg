@@ -1,1 +1,6 @@
-bunx commitlint --edit $1
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# On lit le contenu du fichier (cat) et on le passe via un pipe (|)
+# Cela évite que commitlint essaie d'ouvrir le fichier directement
+cat "$1" | bunx commitlint
