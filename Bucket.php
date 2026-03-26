@@ -15,7 +15,7 @@ final class Bucket
 
     private static string $FOLDER_NAME = 'bucket';
 
-    private static mixed $DIRECTORY = opendir(Bucket::$FOLDER_NAME);
+    private mixed $DIRECTORY = opendir(Bucket::$FOLDER_NAME);
 
     private function __construct(string $mailUser, int $nombreBilles = 0)
     {

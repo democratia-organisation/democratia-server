@@ -4,12 +4,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN bun install
 
-
 FROM php:latest
 
 COPY --from=oven/bun:latest /usr/local/bin/bun /usr/local/bin/bun
 COPY --from=oven/bun:latest /usr/local/bin/bunx /usr/local/bin/bunx
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=node:latest /usr/local/bin/node /usr/local/bin/node
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 RUN apt-get update --yes && apt-get upgrade --yes \
@@ -34,7 +34,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     # Configuration de Xdebug
     && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    && echo "xdebug.client_host=127.0.0.1" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 WORKDIR /usr/src/server
 COPY --from=bun_builder /app ./node_modules
