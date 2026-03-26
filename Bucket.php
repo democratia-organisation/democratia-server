@@ -15,12 +15,13 @@ final class Bucket
 
     private static string $FOLDER_NAME = 'bucket';
 
-    private mixed $DIRECTORY = opendir(Bucket::$FOLDER_NAME);
+    private mixed $DIRECTORY;
 
     private function __construct(string $mailUser, int $nombreBilles = 0)
     {
         $this->nombreBilles = $nombreBilles;
         $this->mailUser = $mailUser;
+        $this->DIRECTORY = opendir(Bucket::$FOLDER_NAME);
     }
 
     public static function getRatio(string $mailUser): float
