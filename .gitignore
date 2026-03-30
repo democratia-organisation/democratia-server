@@ -6,3 +6,4 @@ vendor
 config/private.key
 .env
 node_modules
+bucket/
