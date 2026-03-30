@@ -7,6 +7,8 @@ final class Bucket
 {
     private int $nombreBilles;
 
+    public string $userFileName;
+
     private string $mailUser;
 
     public static int $MAXIMUM_BILLES_USER = 1_000;
@@ -22,13 +24,16 @@ final class Bucket
         $this->nombreBilles = $nombreBilles;
         $this->mailUser = $mailUser;
         $this->DIRECTORY = opendir(Bucket::$FOLDER_NAME);
+        $this->userFileName = './'.Bucket::$FOLDER_NAME.'/'.urlencode($mailUser).'.json';
     }
 
     public static function getRatio(string $mailUser): float
     {
-        $bucket = Bucket::deserialiser($mailUser);
+        if (! new Bucket($mailUser)->MailFormatChecker()) {
+            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
+        }
 
-        return $bucket->calcul();
+        return Bucket::deserialiser($mailUser)->calcul();
     }
 
     public static function getGlobalUsage(): float
@@ -44,13 +49,33 @@ final class Bucket
         return $totalBucket;
     }
 
-    public function serialiser(): bool
+    public static function hasABucket(string $mailUser): bool
     {
+        $bucket = new Bucket($mailUser);
+        if (! $bucket->MailFormatChecker()) {
+            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
+        }
+
+        return file_exists($bucket->userFileName);
+    }
+
+    public function addRequest(): void
+    {
+        $this->nombreBilles += 1;
+    }
+
+    public static function serialiser(string $mailUser): bool
+    {
+        $bucket = new Bucket($mailUser);
+        if (! $bucket->MailFormatChecker()) {
+            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
+        }
+
         $tableau = [
-            'nombreBilles' => $this->nombreBilles,
-            'mailUser' => $this->mailUser,
+            'nombreBilles' => $bucket->nombreBilles,
+            'mailUser' => $bucket->mailUser,
         ];
-        $nomDuFichier = Bucket::$FOLDER_NAME.'/'.urlencode($this->mailUser).'.json';
+        $nomDuFichier = Bucket::$FOLDER_NAME.'/'.urlencode($bucket->mailUser).'.json';
         $chaine = json_encode($tableau);
         $file = fopen($nomDuFichier, 'w');
         $value = fwrite($file, $chaine);
@@ -58,14 +83,23 @@ final class Bucket
         return is_numeric($value);
     }
 
-    private static function deserialiser(string $mailUser): Bucket
+    public static function deserialiser(string $mailUser): Bucket
     {
-        $nomDuFichier = Bucket::$FOLDER_NAME.'/'.urlencode($mailUser).'.json';
-        $file = fopen($nomDuFichier, 'r');
-        $value = fread($file, filesize($nomDuFichier));
+        $bucket = new Bucket($mailUser);
+        if (! $bucket->MailFormatChecker()) {
+            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
+        }
+        $file = fopen($bucket->userFileName, 'r');
+        $value = $file == false ? null : fread($file, filesize($bucket->userFileName));
         $tableau = json_decode($value, true);
 
         return new Bucket($mailUser, $tableau['nombreBilles']);
+    }
+
+    private function MailFormatChecker(): bool
+    {
+        return filter_var($this->mailUser, FILTER_VALIDATE_EMAIL);
+
     }
 
     private function calcul(): float
@@ -75,13 +109,12 @@ final class Bucket
 
     public static function NettoyerBucket(): bool
     {
-        $directory = opendir(Bucket::$FOLDER_NAME);
         $isDeserialize = true;
         while ($fichier = readdir(Bucket::$DIRECTORY) && $isDeserialize) {
             if ($fichier != '.' && $fichier != '..') {
                 $bucket = Bucket::deserialiser($fichier);
                 $bucket->nombreBilles = 0;
-                $isDeserialize = $bucket->serialiser();
+                $isDeserialize = $bucket->serialiser($bucket->mailUser);
             }
         }
 
