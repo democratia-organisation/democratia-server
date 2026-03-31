@@ -2,6 +2,7 @@
 
 require_once 'vendor/autoload.php';
 require_once 'subjectchecker.php';
+require_once 'ClockImplementation.php';
 require_once 'ClassRest.php';
 require_once 'image_manager.php';
 require_once 'Bucket.php';
@@ -222,6 +223,7 @@ try {
     array_walk_recursive($retour, function (&$item) {
         if (is_string($item)) {
             $item = preg_replace('/[\x00-\x1F\x7F]/u', '', $item);
+            $item = mb_convert_encoding($item, 'UTF-8', 'UTF-8');
         }
     });
 
