@@ -4,19 +4,10 @@ namespace Koyok\democratia\src;
 
 use Exception;
 use Jose\Component\Checker;
-use Jose\Component\Checker\AlgorithmChecker;
-use Jose\Component\Checker\ClaimCheckerManager;
-use Jose\Component\Checker\HeaderCheckerManager;
-use Jose\Component\Checker\InvalidClaimException;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
-use Jose\Component\Signature\Algorithm\ES256;
-use Jose\Component\Signature\JWSBuilder;
-use Jose\Component\Signature\JWSTokenSupport;
-use Jose\Component\Signature\JWSVerifier;
-use Jose\Component\Signature\Serializer\CompactSerializer;
-use Koyok\democratia\Extension\ClockImplementation;
-use Koyok\democratia\Extension\SubjectChecker;
+use Jose\Component\Signature;
+use Koyok\democratia\Extension;
 use Symfony\Component\Dotenv\Dotenv;
 use Throwable;
 
@@ -44,11 +35,9 @@ $uri .= $_SERVER['HTTP_HOST'];
 $client = $_SERVER['REMOTE_ADDR'];
 
 if ($requeteRaw === null) {
-
     http_response_code(CodeDeRetourApi::BadRequest->value);
     echo json_encode(['success' => false, 'message' => 'no parameters']);
     exit;
-
 }
 $requete = $requeteRaw;
 
@@ -69,22 +58,29 @@ if (isset($_GET['parameters'])) {
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 
-$keyFile = dirname(__DIR__, 1).'/config/private.key';
-if (file_exists($keyFile)) {
-    $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
-} else {
-    $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
-    file_put_contents($keyFile, json_encode($privateKey->jsonSerialize()));
-}
-
 try {
     $header = getallheaders();
-    $algorithmManager = new AlgorithmManager([new ES256]);
-    $jwsBuilder = new JWSBuilder($algorithmManager);
-    $jwtSerializer = new CompactSerializer;
+    $algorithmManager = new AlgorithmManager([new Signature\Algorithm\ES256]);
+    $jwsBuilder = new Signature\JWSBuilder($algorithmManager);
+    $jwtSerializer = new Signature\Serializer\CompactSerializer;
+    $clock = new Extension\ClockImplementation()->now()->getTimestamp();
+    $arrayChecker = [
+        new Checker\ExpirationTimeChecker($clock),
+        new Checker\IssuerChecker([$uri]),
+        new Checker\AudienceChecker($client),
+    ];
+    $keyFile = dirname(__DIR__, 1).'/config/private.key';
+    if (file_exists($keyFile)) {
+        $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
+    } else {
+        $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
+        file_put_contents($keyFile, json_encode($privateKey->jsonSerialize()));
+    }
+
     if (empty($header['Authorization']) && $requete != 'login') {
         throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
     } elseif ($requete == 'login' && $requestMethod == 'GET') {
+
         $payloadAcces = json_encode([
             'iss' => $uri,
             'aud' => $client,
@@ -116,28 +112,22 @@ try {
         http_response_code(CodeDeRetourApi::OK->value);
         echo json_encode(['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh]]);
         exit;
+    } elseif ($requete == 'relogin' && $requestMethod == 'GET') {
+        $arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
     }
-
-    $clock = new ClockImplementation()->now()->getTimestamp();
-    $claimChecker = new ClaimCheckerManager([
-        new Checker\ExpirationTimeChecker($clock),
-        new SubjectChecker,
-        new Checker\IssuerChecker([$uri]),
-        new Checker\AudienceChecker($client),
-    ]);
-    $jwsVerifier = new JWSVerifier($algorithmManager);
-    $headerCheckerManager = new HeaderCheckerManager([new AlgorithmChecker(['ES256'])], [new JWSTokenSupport]);
+    $claimChecker = new Checker\ClaimCheckerManager($arrayChecker);
+    $jwsVerifier = new Signature\JWSVerifier($algorithmManager);
+    $headerCheckerManager = new Checker\HeaderCheckerManager([new Checker\AlgorithmChecker(['ES256'])], [new Signature\JWSTokenSupport]);
     $token = str_replace('Bearer ', '', $header['Authorization'] ?? '');
     $jws = $jwtSerializer->unserialize($token);
     $payload = json_decode($jws->getPayload(), true);
-
     try {
         if (! $jwsVerifier->verifyWithKey($jws, $privateKey, 0)) {
             throw new Exception;
         }
         $claimValide = $claimChecker->check($payload);
         $headerCheckerManager->check($jws, 0);
-    } catch (InvalidClaimException $th) {
+    } catch (Checker\InvalidClaimException $th) {
         if ($th->getClaim() == 'exp') {
             throw new Exception('Token expiré', CodeDeRetourApi::Conflict->value);
         }
@@ -172,6 +162,16 @@ try {
                 exit;
             } elseif ($requete == 'obtenirImage') {
                 GetGroupeImage($parameters[0]);
+            } elseif ($requete = 'relogin') {
+                $api->reponseApi();
+                http_response_code($api->getCode());
+                $resultatFinal = [
+                    'success' => $api->isSuccess,
+                    'message' => 'Voici toutes les méthodes par défaults disponibles',
+                    'data' => [],
+                ];
+                echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                exit;
             } elseif ($requeteFinal == null) {
                 $api->verificationFormatage($parameters, $requete);
                 $api->verificationBonneAction($requete, $test);
@@ -246,6 +246,7 @@ try {
 }
 
 $api->reponseApi();
+http_response_code($api->getCode());
 $resultatFinal = $api->getTabRetour();
 echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 exit;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\Extension;
+namespace Tests;
 
 use DateTimeImmutable;
 use Psr\Clock\ClockInterface;

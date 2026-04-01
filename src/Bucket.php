@@ -79,9 +79,8 @@ final class Bucket
             'nombreBilles' => $bucket->nombreBilles,
             'mailUser' => $bucket->mailUser,
         ];
-        $nomDuFichier = dirname(__DIR__, 1).Bucket::$FOLDER_NAME.'/'.urlencode($bucket->mailUser).'.json';
         $chaine = json_encode($tableau);
-        $file = fopen($nomDuFichier, 'w');
+        $file = fopen($bucket->userFileName, 'w');
         $value = fwrite($file, $chaine);
 
         return is_numeric($value);

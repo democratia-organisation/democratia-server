@@ -5,7 +5,6 @@ namespace Koyok\democratia\src;
 use Exception;
 use InvalidArgumentException;
 use Koyok\democratia\config\Connexion;
-use Koyok\democratia\src;
 use LogicException;
 use PDO;
 use PDOException;
