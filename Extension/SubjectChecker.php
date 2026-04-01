@@ -16,6 +16,7 @@ final class SubjectChecker implements ClaimChecker
             throw new InvalidClaimException('Le sub est absent', 'sub', $value);
         } else {
             // TODO : regarder si le claim sub a un auteur valide dans la base de donnée
+            // TODO : vérifier si le clamier correspond à celui qui a fait la requêtre de login lors de la vérification de la clé
         }
 
     }
