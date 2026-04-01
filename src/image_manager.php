@@ -1,6 +1,8 @@
 <?php
 
-require_once 'ClassRest.php';
+namespace Koyok\democratia\src;
+
+use Exception;
 
 function UploadGroupeImage(string $id_groupe): void
 {
@@ -48,9 +50,9 @@ function UploadGroupeImage(string $id_groupe): void
 function GetGroupeImage(string $nom_image): void
 {
     try {
-
-        $fileName = file_exists(__DIR__.'/images/'.$nom_image) ? $nom_image : 'default-groupe.png.jpeg';
-        $filePath = __DIR__.'/images/'.$fileName;
+        $baseDir = dirname(__DIR__, 1).'/images/';
+        $fileName = file_exists($baseDir.$nom_image) ? $baseDir.$nom_image : $baseDir.'default-groupe.png.jpeg';
+        $filePath = $fileName;
         $mimeType = mime_content_type($filePath);
 
         if (ob_get_level()) {

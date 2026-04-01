@@ -1,13 +1,8 @@
 <?php
 
-require_once 'vendor/autoload.php';
-require_once 'subjectchecker.php';
-require_once 'ClockImplementation.php';
-require_once 'ClassRest.php';
-require_once 'image_manager.php';
-require_once 'Bucket.php';
-require_once 'cleaningBucket.php';
+namespace Koyok\democratia\src;
 
+use Exception;
 use Jose\Component\Checker;
 use Jose\Component\Checker\AlgorithmChecker;
 use Jose\Component\Checker\ClaimCheckerManager;
@@ -20,9 +15,12 @@ use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\JWSTokenSupport;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
-use Koyok\democratia\Extension\Clock\ClockImplementation;
-use Koyok\democratia\Extension\JWT\SubjectChecker;
+use Koyok\democratia\Extension\ClockImplementation;
+use Koyok\democratia\Extension\SubjectChecker;
 use Symfony\Component\Dotenv\Dotenv;
+use Throwable;
+
+require_once '../vendor/autoload.php';
 
 error_reporting(E_ERROR | E_PARSE);
 ini_set('display_errors', 0);
@@ -71,7 +69,7 @@ if (isset($_GET['parameters'])) {
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 
-$keyFile = __DIR__.'/config/private.key';
+$keyFile = dirname(__DIR__, 1).'/config/private.key';
 if (file_exists($keyFile)) {
     $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
 } else {

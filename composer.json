@@ -21,7 +21,13 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/"
-    }
+      "Tests\\": "tests/",
+      "Koyok\\democratia\\src\\" : ["./src"],
+      "Koyok\\democratia\\config\\" : "./config",
+      "Koyok\\democratia\\Extension\\" : "./Extension"
+    },
+    "files": [
+      "src/image_manager.php"
+    ]
   }
 }

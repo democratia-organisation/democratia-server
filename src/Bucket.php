@@ -1,5 +1,9 @@
 <?php
 
+namespace Koyok\democratia\src;
+
+use Exception;
+
 /**
  * Représente une instance de bucket
  */
@@ -23,8 +27,8 @@ final class Bucket
     {
         $this->nombreBilles = $nombreBilles;
         $this->mailUser = $mailUser;
-        $this->DIRECTORY = opendir(Bucket::$FOLDER_NAME);
-        $this->userFileName = './'.Bucket::$FOLDER_NAME.'/'.urlencode($mailUser).'.json';
+        $this->DIRECTORY = opendir(dirname(__DIR__, 1).'/'.Bucket::$FOLDER_NAME);
+        $this->userFileName = dirname(__DIR__, 1).'/'.Bucket::$FOLDER_NAME.'/'.urlencode($mailUser).'.json';
     }
 
     public static function getRatio(string $mailUser): float
@@ -75,7 +79,7 @@ final class Bucket
             'nombreBilles' => $bucket->nombreBilles,
             'mailUser' => $bucket->mailUser,
         ];
-        $nomDuFichier = Bucket::$FOLDER_NAME.'/'.urlencode($bucket->mailUser).'.json';
+        $nomDuFichier = dirname(__DIR__, 1).Bucket::$FOLDER_NAME.'/'.urlencode($bucket->mailUser).'.json';
         $chaine = json_encode($tableau);
         $file = fopen($nomDuFichier, 'w');
         $value = fwrite($file, $chaine);
@@ -93,7 +97,7 @@ final class Bucket
         $value = $file == false ? null : fread($file, filesize($bucket->userFileName));
         $tableau = json_decode($value, true);
 
-        return new Bucket($mailUser, $tableau['nombreBilles']);
+        return new Bucket($mailUser, $tableau['nombreBilles'] ?? 0);
     }
 
     private function MailFormatChecker(): bool

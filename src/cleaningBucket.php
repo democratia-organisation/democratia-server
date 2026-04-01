@@ -1,5 +1,10 @@
 <?php
 
+namespace Koyok\democratia\src;
+
+use EvTimer;
+use Exception;
+
 $tempsVerifUsage = 60 * 5;
 $tempNettoyage = 3600;
 $w1 = new EvTimer($tempNettoyage, 0, function () {

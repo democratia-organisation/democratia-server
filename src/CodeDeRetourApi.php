@@ -1,5 +1,7 @@
 <?php
 
+namespace Koyok\democratia\src;
+
 /**
  * Enumération des codes de retour HTTP standard pour l'API.
  */

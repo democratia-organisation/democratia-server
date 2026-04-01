@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\Extension\JWT;
+namespace Koyok\democratia\Extension;
 
 use Jose\Component\Checker\ClaimChecker;
 use Jose\Component\Checker\InvalidClaimException;

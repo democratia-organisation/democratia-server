@@ -1,12 +1,20 @@
 <?php
 
-require_once 'config/connexion.php';
-require_once 'CodeDeRetourApi.php';
-require_once 'ActionPossible.php';
-// Appeler la methode correspondante de l'API
+namespace Koyok\democratia\src;
+
+use Exception;
+use InvalidArgumentException;
+use Koyok\democratia\config\Connexion;
+use Koyok\democratia\src;
+use LogicException;
+use PDO;
+use PDOException;
+use RuntimeException;
+
+// Appeler src\la methode correspondante de l'API
 
 /**
- * Resume de Api : classe qui collection les methode api rest vers la base de donnee
+ * Resume de Api : classe qui collection src\les methode api rest vers la base de donnee
  * toutes les actions avec cette api sont prepares, si votre requete n'a pas de parametre,
  * donnez un tableau de parametre vide pour executer, sinon cela bloquera
  */
@@ -104,7 +112,7 @@ class Api
 
     public function tryGetAction(string $requete, string $enumClass): ?string
     {
-        // On boucle sur tous les cas de l'énumération fournie (ex: PostMethode)
+        // On boucle sur tous les cas de l'énumération fournie (ex: src\PostMethode)
         foreach ($enumClass::cases() as $case) {
             // Si le nom du case (ex: "CreerUtilisateur") correspond à la requête
             if ($case->name === $requete) {
@@ -115,7 +123,7 @@ class Api
         return null;
     }
 
-    // Fonction utilitaire pour formater les methodes
+    // Fonction utilitaire pour formater src\les methodes
     private function formatMethods(array $cases): array
     {
         $formatted = [];
@@ -214,7 +222,7 @@ class Api
         if (! preg_match_all($actionAttendu, $requete, $matches)) {
             print_r($matches);
             echo "$actionAttendu $requete";
-            throw new LogicException('Requete illogique au vu de la methode api utilise', CodeDeRetourApi::BadRequest->value);
+            throw new LogicException('Requete illogique au vu de src\la methode api utilise', CodeDeRetourApi::BadRequest->value);
         }
 
     }
