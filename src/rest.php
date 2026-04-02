@@ -162,13 +162,15 @@ try {
                 exit;
             } elseif ($requete == 'obtenirImage') {
                 GetGroupeImage($parameters[0]);
-            } elseif ($requete = 'relogin') {
+            } elseif ($requete == 'relogin') {
                 $api->reponseApi();
                 http_response_code($api->getCode());
+                $api->get($parameters, 'SELECT * FROM internaute WHERE courriel=?');
+                $api->reponseApi();
                 $resultatFinal = [
                     'success' => $api->isSuccess,
-                    'message' => 'Voici toutes les méthodes par défaults disponibles',
-                    'data' => [],
+                    'message' => $api->getMessage(),
+                    'data' => $api->getTabRetour(),
                 ];
                 echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                 exit;

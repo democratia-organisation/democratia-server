@@ -66,11 +66,12 @@ final class Bucket
     public function addRequest(): void
     {
         $this->nombreBilles += 1;
+        Bucket::serialiser($this->mailUser, $this->nombreBilles);
     }
 
-    public static function serialiser(string $mailUser): bool
+    public static function serialiser(string $mailUser, int $nombreBille = 0): bool
     {
-        $bucket = new Bucket($mailUser);
+        $bucket = new Bucket($mailUser, $nombreBille);
         if (! $bucket->MailFormatChecker()) {
             throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
         }
@@ -117,7 +118,7 @@ final class Bucket
             if ($fichier != '.' && $fichier != '..') {
                 $bucket = Bucket::deserialiser($fichier);
                 $bucket->nombreBilles = 0;
-                $isDeserialize = $bucket->serialiser($bucket->mailUser);
+                $isDeserialize = $bucket->serialiser($bucket->mailUser, $bucket->nombreBilles);
             }
         }
 
