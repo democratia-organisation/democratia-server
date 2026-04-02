@@ -63,9 +63,9 @@ try {
     $algorithmManager = new AlgorithmManager([new Signature\Algorithm\ES256]);
     $jwsBuilder = new Signature\JWSBuilder($algorithmManager);
     $jwtSerializer = new Signature\Serializer\CompactSerializer;
-    $clock = new Extension\ClockImplementation()->now()->getTimestamp();
+    $clock = new Extension\ClockImplementation;
     $arrayChecker = [
-        new Checker\ExpirationTimeChecker($clock),
+        new Checker\ExpirationTimeChecker(clock: $clock),
         new Checker\IssuerChecker([$uri]),
         new Checker\AudienceChecker($client),
     ];
