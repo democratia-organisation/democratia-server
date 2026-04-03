@@ -112,8 +112,9 @@ try {
         http_response_code(CodeDeRetourApi::OK->value);
         echo json_encode(['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh]]);
         exit;
-    } elseif ($requete == 'relogin' && $requestMethod == 'GET') {
+    } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
         $arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
+
     }
     $claimChecker = new Checker\ClaimCheckerManager($arrayChecker);
     $jwsVerifier = new Signature\JWSVerifier($algorithmManager);
@@ -131,6 +132,10 @@ try {
         if ($th->getClaim() == 'exp') {
             throw new Exception('Token expiré', CodeDeRetourApi::Conflict->value);
         }
+        if ($th->getClaim() == 'sub') {
+            throw new Exception('Utilisateur incorérent', CodeDeRetourApi::Unauthorized->value);
+        }
+
         throw new Exception('Token invalide', CodeDeRetourApi::Malicious->value);
     }
     $account = $payload['sub'];
