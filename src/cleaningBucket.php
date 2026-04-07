@@ -1,7 +1,10 @@
 <?php
 
-$tempsVerifUsage = 60 * 5;
-$tempNettoyage = 3600;
+namespace Koyok\democratia\src;
+
+use EvTimer;
+use Exception;
+
 $w1 = new EvTimer($tempNettoyage, 0, function () {
     $verification = Bucket::NettoyerBucket();
     if (! $verification) {
@@ -11,6 +14,6 @@ $w1 = new EvTimer($tempNettoyage, 0, function () {
 $w2 = new EvTimer($tempsVerifUsage, 0, function () {
     $usage = Bucket::getGlobalUsage();
     if ($usage >= Bucket::$MAXIMUM_BILLES_GLOBAL) {
-        throw new Exception('Erreur inattendu', CodeDeRetourApi::InternalServerError->value);
+        throw new Exception('Le nombre de requete maximal a été atteint', CodeDeRetourApi::InternalServerError->value);
     }
 });

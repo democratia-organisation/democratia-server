@@ -1,22 +1,18 @@
 <?php
 
-use Jose\Component\Checker\AlgorithmChecker;
-use Jose\Component\Checker\HeaderCheckerManager;
-use Jose\Component\Checker\InvalidHeaderException;
+namespace Koyok\democratia\src;
+
+use DateTime;
+use Exception;
+use Jose\Component\Checker;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
-use Jose\Component\Signature\Algorithm\ES256;
-use Jose\Component\Signature\JWSBuilder;
-use Jose\Component\Signature\JWSTokenSupport;
-use Jose\Component\Signature\JWSVerifier;
-use Jose\Component\Signature\Serializer\CompactSerializer;
+use Jose\Component\Signature;
+use Koyok\democratia\Extension;
 use Symfony\Component\Dotenv\Dotenv;
+use Throwable;
 
-require_once 'vendor/autoload.php';
-require_once 'ClassRest.php';
-require_once 'image_manager.php';
-require_once 'Bucket.php';
-require_once 'cleaningBucket.php';
+require_once '../vendor/autoload.php';
 
 error_reporting(E_ERROR | E_PARSE);
 ini_set('display_errors', 0);
@@ -34,15 +30,15 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 $requeteRaw = $_GET['request'] ?? '';
 $dotenv = new Dotenv;
 $dotenv->load(__DIR__.'/.env');
-$uri = $_ENV['ENVIRONNEMENT'] == 'developpment' ? 'http://' : 'https://'; // TODO : ajouter le nécessaire pour du https
+$isInDeveloppment = $_ENV['ENVIRONNEMENT'] == 'developpment';
+$uri = $isInDeveloppment ? 'http://' : 'https://'; // TODO : ajouter le nécessaire pour du https
 $uri .= $_SERVER['HTTP_HOST'];
+$client = $_SERVER['REMOTE_ADDR'];
 
 if ($requeteRaw === null) {
-
     http_response_code(CodeDeRetourApi::BadRequest->value);
     echo json_encode(['success' => false, 'message' => 'no parameters']);
     exit;
-
 }
 $requete = $requeteRaw;
 
@@ -63,33 +59,39 @@ if (isset($_GET['parameters'])) {
     $parameters = is_array($decodedJson) ? array_values($decodedJson) : [];
 }
 
-$keyFile = __DIR__.'/config/private.key';
-if (file_exists($keyFile)) {
-    $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
-} else {
-    $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
-    file_put_contents($keyFile, json_encode($privateKey->jsonSerialize()));
-}
-
 try {
     $header = getallheaders();
+    $algorithmManager = new AlgorithmManager([new Signature\Algorithm\ES256]);
+    $jwsBuilder = new Signature\JWSBuilder($algorithmManager);
+    $jwtSerializer = new Signature\Serializer\CompactSerializer;
+    $clock = new Extension\ClockImplementation;
+    $arrayChecker = [
+        new Checker\ExpirationTimeChecker(clock: $clock),
+        new Checker\IssuerChecker([$uri]),
+        new Checker\AudienceChecker($client),
+    ];
+    $keyFile = dirname(__DIR__, 1).'/config/private.key';
+    if (file_exists($keyFile)) {
+        $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
+    } else {
+        $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
+        file_put_contents($keyFile, json_encode($privateKey->jsonSerialize()));
+    }
+
     if (empty($header['Authorization']) && $requete != 'login') {
         throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
     } elseif ($requete == 'login' && $requestMethod == 'GET') {
-        // TODO : vérifier que $parameters[0] est un utilisateur existant
-        $algorithmManager = new AlgorithmManager([new ES256]);
-        $jwsBuilder = new JWSBuilder($algorithmManager);
 
         $payloadAcces = json_encode([
             'iss' => $uri,
-            'aud' => $uri,
+            'aud' => $client,
             'sub' => $parameters[0],
             'iat' => time(),
             'exp' => time() + 3600,
         ]);
         $payloadRefresh = json_encode([
             'iss' => $uri,
-            'aud' => $uri,
+            'aud' => $client,
             'sub' => $parameters[0],
             'iat' => time(),
             'exp' => time() + 3600 * 24 * 7,
@@ -106,30 +108,54 @@ try {
             ->addSignature($privateKey, ['alg' => 'ES256'])
             ->build();
 
-        $tokenAccess = new CompactSerializer()->serialize($jws);
-        $tokenRefresh = new CompactSerializer()->serialize($jwsRefresh);
+        $tokenAccess = $jwtSerializer->serialize($jws);
+        $tokenRefresh = $jwtSerializer->serialize($jwsRefresh);
         http_response_code(CodeDeRetourApi::OK->value);
         echo json_encode(['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh]]);
         exit;
+    } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
+        $arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
+
     }
-    $account = $payload['sub'];
-    $algorithmManager = new AlgorithmManager([new ES256]);
-    $jwsVerifier = new JWSVerifier($algorithmManager);
+    $claimChecker = new Checker\ClaimCheckerManager($arrayChecker);
+    $jwsVerifier = new Signature\JWSVerifier($algorithmManager);
+    $headerCheckerManager = new Checker\HeaderCheckerManager([new Checker\AlgorithmChecker(['ES256'])], [new Signature\JWSTokenSupport]);
     $token = str_replace('Bearer ', '', $header['Authorization'] ?? '');
-    $jws = new CompactSerializer()->unserialize($token);
-    $isValid = $jwsVerifier->verifyWithKey($jws, $privateKey, 0);
-    if (! $isValid) {
+    $jws = $jwtSerializer->unserialize($token);
+    $payload = json_decode($jws->getPayload(), true);
+    try {
+        if (! $jwsVerifier->verifyWithKey($jws, $privateKey, 0)) {
+            throw new Exception;
+        }
+        $claimValide = $claimChecker->check($payload);
+        $headerCheckerManager->check($jws, 0);
+    } catch (Checker\InvalidClaimException $th) {
+        if ($th->getClaim() == 'exp') {
+            throw new Exception('Token expiré', CodeDeRetourApi::Unauthorized->value);
+        }
+        if ($th->getClaim() == 'sub') {
+            throw new Exception('Utilisateur incorérent', CodeDeRetourApi::Unauthorized->value);
+            // TODO : lors d'une future phase de développement, renvoyé unauthorized qu'une fois qu'une validation par mail sera faite
+            // TODO : générer une empreinte d'appareil unique et si une nouvelle est détecté alors prévenir par mail
+        }
+
         throw new Exception('Token invalide', CodeDeRetourApi::Malicious->value);
     }
-    $payload = json_decode($jws->getPayload(), true);
-    if ($payload['exp'] <= time()) {
-        throw new Exception('Le token a expiré', CodeDeRetourApi::Conflict->value);
-    }
-    $headerCheckerManager = new HeaderCheckerManager([new AlgorithmChecker(['ES256'])], [new JWSTokenSupport]);
-    $headerCheckerManager->check($jwt, 0);
-    $nombreBille = Bucket::getRatio($account);
-    if ($nombreBille >= Bucket::$MAXIMUM_BILLES_USER) {
-        throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::UnprocessableEntity->value);
+    $account = $payload['sub'];
+    $bucket = Bucket::deserialiser($account);
+    if (Bucket::hasABucket($account)) {
+        $nombreBille = Bucket::getRatio($account);
+        if ($nombreBille >= Bucket::$MAXIMUM_BILLES_USER) {
+            header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + Bucket::$tempNettoyage);
+            header('Retry-After: 60');
+            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
+        } else {
+            $bucket->addRequest();
+            header('X-RateLimit-Limit: '.Bucket::$MAXIMUM_BILLES_USER);
+            header('X-RateLimit-Remaining: '.Bucket::$MAXIMUM_BILLES_USER - $bucket->nombreBilles);
+        }
+    } elseif (! Bucket::serialiser($account)) {
+        throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
     }
 
     $api = new Api;
@@ -149,6 +175,18 @@ try {
                 exit;
             } elseif ($requete == 'obtenirImage') {
                 GetGroupeImage($parameters[0]);
+            } elseif ($requete == 'relogin') {
+                $api->reponseApi();
+                http_response_code($api->getCode());
+                $api->get($parameters, 'SELECT * FROM internaute WHERE courriel=?');
+                $api->reponseApi();
+                $resultatFinal = [
+                    'success' => $api->isSuccess,
+                    'message' => $api->getMessage(),
+                    'data' => $api->getTabRetour(),
+                ];
+                echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+                exit;
             } elseif ($requeteFinal == null) {
                 $api->verificationFormatage($parameters, $requete);
                 $api->verificationBonneAction($requete, $test);
@@ -197,27 +235,33 @@ try {
     }
     array_walk_recursive($retour, function (&$item) {
         if (is_string($item)) {
-
             $item = preg_replace('/[\x00-\x1F\x7F]/u', '', $item);
+            $item = mb_convert_encoding($item, 'UTF-8', 'UTF-8');
         }
     });
+
 } catch (Throwable $e) {
-    if (is_a($e, InvalidHeaderException::class)) {
-        http_response_code(CodeDeRetourApi::Malicious->value);
-    } else {
-        http_response_code($e->getCode());
-    }
-    echo json_encode([
+    $reponse = [
         'success' => false,
-        'error_type' => get_class($e),
-        'message' => $e->getMessage(),
-        'file' => $e->getFile(),
-        'line' => $e->getLine(),
-    ], JSON_UNESCAPED_UNICODE);
+        'message' => 'Une erreur inattendu est survenu',
+    ];
+    if ($e->getCode() == CodeDeRetourApi::Malicious->value) {
+        $reponse['message'] = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+    }
+    if ($isInDeveloppment) {
+        $reponse['file'] = $e->getFile();
+        $reponse['line'] = $e->getLine();
+        $reponse['error_type'] = $e->getMessage();
+        $reponse['message'] = $e->getMessage();
+        $reponse['stackTrace'] = $e->getTraceAsString();
+    }
+    http_response_code($e->getCode());
+    echo json_encode($reponse, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
 $api->reponseApi();
+http_response_code($api->getCode());
 $resultatFinal = $api->getTabRetour();
 echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 exit;

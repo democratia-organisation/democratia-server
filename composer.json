@@ -5,7 +5,8 @@
     "ext-gd": "*",
     "ext-zip": "*",
     "web-token/jwt-framework": "^3.4",
-    "symfony/dotenv": "^8.0"
+    "symfony/dotenv": "^8.0",
+    "psr/clock": "^1.0"
   },
   "config": {
     "allow-plugins": {
@@ -20,7 +21,13 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Tests\\": "tests/"
-    }
+      "Tests\\": "tests/",
+      "Koyok\\democratia\\src\\" : ["./src"],
+      "Koyok\\democratia\\config\\" : "./config",
+      "Koyok\\democratia\\Extension\\" : "./Extension"
+    },
+    "files": [
+      "src/image_manager.php"
+    ]
   }
 }

@@ -1,6 +1,10 @@
 <?php
 
+namespace Koyok\democratia\config;
+
+use PDO;
 use Pdo\Mysql;
+use PDOException;
 
 class Connexion
 {
