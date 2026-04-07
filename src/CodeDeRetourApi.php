@@ -66,6 +66,10 @@ enum CodeDeRetourApi: int
      * 422 Unprocessable Entity : La requête est bien formée mais contient des erreurs de validation.
      */
     case UnprocessableEntity = 422;
+    /**
+     * 429 RateLimit : le nombre max de requete a été atteint
+     */
+    case RateLimit = 429;
 
     /**
      * 500 Internal Server Error : Une erreur interne s'est produite sur le serveur.

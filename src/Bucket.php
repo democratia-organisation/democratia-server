@@ -9,13 +9,17 @@ use Exception;
  */
 final class Bucket
 {
-    private int $nombreBilles;
+    public int $nombreBilles;
 
     public string $userFileName;
 
     private string $mailUser;
 
     public static int $MAXIMUM_BILLES_USER = 1_000;
+
+    public static int $tempsVerifUsage = 60 * 5;
+
+    public static int $tempNettoyage = 3600;
 
     public static int $MAXIMUM_BILLES_GLOBAL = 5_000_000;
 

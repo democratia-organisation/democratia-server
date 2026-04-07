@@ -2,6 +2,7 @@
 
 namespace Koyok\democratia\src;
 
+use DateTime;
 use Exception;
 use Jose\Component\Checker;
 use Jose\Component\Core\AlgorithmManager;
@@ -130,10 +131,12 @@ try {
         $headerCheckerManager->check($jws, 0);
     } catch (Checker\InvalidClaimException $th) {
         if ($th->getClaim() == 'exp') {
-            throw new Exception('Token expiré', CodeDeRetourApi::Conflict->value);
+            throw new Exception('Token expiré', CodeDeRetourApi::Unauthorized->value);
         }
         if ($th->getClaim() == 'sub') {
             throw new Exception('Utilisateur incorérent', CodeDeRetourApi::Unauthorized->value);
+            // TODO : lors d'une future phase de développement, renvoyé unauthorized qu'une fois qu'une validation par mail sera faite
+            // TODO : générer une empreinte d'appareil unique et si une nouvelle est détecté alors prévenir par mail
         }
 
         throw new Exception('Token invalide', CodeDeRetourApi::Malicious->value);
@@ -143,9 +146,14 @@ try {
     if (Bucket::hasABucket($account)) {
         $nombreBille = Bucket::getRatio($account);
         if ($nombreBille >= Bucket::$MAXIMUM_BILLES_USER) {
-            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::UnprocessableEntity->value);
+            header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + Bucket::$tempNettoyage);
+            header('Retry-After: 60');
+            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
+        } else {
+            $bucket->addRequest();
+            header('X-RateLimit-Limit: '.Bucket::$MAXIMUM_BILLES_USER);
+            header('X-RateLimit-Remaining: '.Bucket::$MAXIMUM_BILLES_USER - $bucket->nombreBilles);
         }
-        $bucket->addRequest();
     } elseif (! Bucket::serialiser($account)) {
         throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
     }
