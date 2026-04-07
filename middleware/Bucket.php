@@ -116,7 +116,7 @@ final class Bucket
         return $this->nombreBilles;
     }
 
-    public static function NettoyerBucket(): bool
+    public function NettoyerBucket(): bool
     {
         $isDeserialize = true;
         while ($fichier = readdir(Bucket::$DIRECTORY) && $isDeserialize) {
