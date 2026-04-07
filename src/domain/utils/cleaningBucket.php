@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\src;
+namespace Koyok\democratia\domain\utils;
 
 use EvTimer;
 use Exception;

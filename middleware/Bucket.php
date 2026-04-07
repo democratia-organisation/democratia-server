@@ -1,8 +1,9 @@
 <?php
 
-namespace Koyok\democratia\src;
+namespace Koyok\democratia\middleware;
 
 use Exception;
+use Koyok\democratia\domain\utils;
 
 /**
  * Représente une instance de bucket
@@ -38,7 +39,7 @@ final class Bucket
     public static function getRatio(string $mailUser): float
     {
         if (! new Bucket($mailUser)->MailFormatChecker()) {
-            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Ce n'est pas un mail", utils\CodeDeRetourApi::BadRequest->value);
         }
 
         return Bucket::deserialiser($mailUser)->calcul();
@@ -61,7 +62,7 @@ final class Bucket
     {
         $bucket = new Bucket($mailUser);
         if (! $bucket->MailFormatChecker()) {
-            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Ce n'est pas un mail", utils\CodeDeRetourApi::BadRequest->value);
         }
 
         return file_exists($bucket->userFileName);
@@ -77,7 +78,7 @@ final class Bucket
     {
         $bucket = new Bucket($mailUser, $nombreBille);
         if (! $bucket->MailFormatChecker()) {
-            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Ce n'est pas un mail", utils\CodeDeRetourApi::BadRequest->value);
         }
 
         $tableau = [
@@ -95,7 +96,7 @@ final class Bucket
     {
         $bucket = new Bucket($mailUser);
         if (! $bucket->MailFormatChecker()) {
-            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Ce n'est pas un mail", utils\CodeDeRetourApi::BadRequest->value);
         }
         $file = fopen($bucket->userFileName, 'r');
         $value = $file == false ? null : fread($file, filesize($bucket->userFileName));

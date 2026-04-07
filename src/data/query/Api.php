@@ -1,10 +1,11 @@
 <?php
 
-namespace Koyok\democratia\src;
+namespace Koyok\democratia\data\query;
 
 use Exception;
 use InvalidArgumentException;
-use Koyok\democratia\config\Connexion;
+use Koyok\democratia\data\config\Connexion;
+use Koyok\democratia\domain\utils;
 use LogicException;
 use PDO;
 use PDOException;
@@ -19,7 +20,7 @@ use RuntimeException;
  */
 class Api
 {
-    private CodeDeRetourApi $retourApi;
+    private utils\CodeDeRetourApi $retourApi;
 
     private int $codeDeRetourApi;
 
@@ -33,7 +34,7 @@ class Api
 
     public function __construct()
     {
-        $this->retourApi = CodeDeRetourApi::OK;
+        $this->retourApi = utils\CodeDeRetourApi::OK;
         $this->codeDeRetourApi = $this->retourApi->value;
         $this->messageDeRetour = 'Aucune action effectuee';
         $this->valeurRetourne = null;
@@ -48,10 +49,10 @@ class Api
     public function getAvailableMethods(): array
     {
         return [
-            'POST' => $this->formatMethods(PostMethode::cases()),
-            'GET' => $this->formatMethods(GetMethode::cases()),
-            'PATCH' => $this->formatMethods(PatchMethode::cases()),
-            'DELETE' => $this->formatMethods(DeleteMethode::cases()),
+            'POST' => $this->formatMethods(utils\PostMethode::cases()),
+            'GET' => $this->formatMethods(utils\GetMethode::cases()),
+            'PATCH' => $this->formatMethods(utils\PatchMethode::cases()),
+            'DELETE' => $this->formatMethods(utils\DeleteMethode::cases()),
         ];
     }
 
@@ -60,62 +61,32 @@ class Api
         return $this->codeDeRetourApi;
     }
 
-    public function getMessage(): string
-    {
-        return $this->messageDeRetour;
-    }
-
-    public function getTabRetour(): array
-    {
-        return $this->arrayRetour;
-    }
-
-    public function post(array $parameters, string $requete): void
-    {
-
-        $this->execute($parameters, $requete);
-    }
-
-    public function patch(array $parameters, string $requete): void
-    {
-        $this->execute($parameters, $requete);
-    }
-
-    public function delete(array $parameters, string $requete): void
-    {
-        $this->execute($parameters, $requete);
-    }
-
-    public function get(array $parameters, string $requete): void
-    {
-        $this->execute($parameters, $requete);
-    }
-
-    private function execute(array $parameters, string $requete): void
+    public function execute(array $parameters, string $requete): array
     {
         $pdo = $this->connexionBaseDeDonne();
         $this->valeurRetourne = $this->executeRequete($pdo, $requete, $parameters);
-        if ($this->codeDeRetourApi == CodeDeRetourApi::OK->value) {
+        if ($this->codeDeRetourApi == utils\CodeDeRetourApi::OK->value) {
             $this->messageDeRetour = 'Ressource obtenu avec success';
         }
-        $this->reponseApi();
+
+        return $this->getTabRetour();
 
     }
 
-    public function reponseApi(): void
+    private function getTabRetour(): array
     {
         $this->arrayRetour['success'] = $this->isSuccess;
         $this->arrayRetour['message'] = $this->messageDeRetour;
         $this->arrayRetour['data'] = $this->valeurRetourne;
+
+        return $this->arrayRetour;
     }
 
     public function tryGetAction(string $requete, string $enumClass): ?string
     {
-        // On boucle sur tous les cas de l'énumération fournie (ex: src\PostMethode)
         foreach ($enumClass::cases() as $case) {
-            // Si le nom du case (ex: "CreerUtilisateur") correspond à la requête
             if ($case->name === $requete) {
-                return $case->value; // On retourne le SQL (ex: "CALL Creer_utilisateur(...)")
+                return $case->value;
             }
         }
 
@@ -147,6 +118,11 @@ class Api
         }
     }
 
+    public function getMessage(): string
+    {
+        return $this->messageDeRetour;
+    }
+
     private function executeRequete(PDO $pdo, string $requete, array $parameters): mixed
     {
         try {
@@ -176,11 +152,10 @@ class Api
         string $messageDeRetour): void
     {
         $this->messageDeRetour = $messageDeRetour;
-        $this->retourApi = CodeDeRetourApi::tryFrom($codeDerreur);
+        $this->retourApi = utils\CodeDeRetourApi::tryFrom($codeDerreur);
         $this->codeDeRetourApi = $codeDerreur;
         if ($this->retourApi != null) {
             $this->codeDeRetourApi = $this->retourApi->value;
-            $this->reponseApi();
         }
 
     }
@@ -193,7 +168,7 @@ class Api
         $estNonPrepare = ! preg_match_all('/\?/', $requete) && ! preg_match_all('/\:/', $requete);
         if ($nombreDeParametereDonne > 0) {
             if ($estNonPrepare) {
-                throw new InvalidArgumentException('Requete non prepare donc refuse', CodeDeRetourApi::BadRequest->value);
+                throw new InvalidArgumentException('Requete non prepare donc refuse', utils\CodeDeRetourApi::BadRequest->value);
             } else {
                 $matches = [];
                 if (preg_match_all('/\?/', $requete, $matches)) {
@@ -202,12 +177,12 @@ class Api
                     $nombreDeParametereRequete = count($matches[0]);
                 }
                 if ($nombreDeParametereDonne != $nombreDeParametereRequete) {
-                    throw new InvalidArgumentException('Nombre de parametre donnees differents des parametres de la requete', CodeDeRetourApi::BadRequest->value);
+                    throw new InvalidArgumentException('Nombre de parametre donnees differents des parametres de la requete', utils\CodeDeRetourApi::BadRequest->value);
                 }
             }
         } else {
             if (! $estNonPrepare) {
-                throw new InvalidArgumentException("Requete prepare alors qu'aucun parametre n'est donnee", CodeDeRetourApi::BadRequest->value);
+                throw new InvalidArgumentException("Requete prepare alors qu'aucun parametre n'est donnee", utils\CodeDeRetourApi::BadRequest->value);
             }
         }
 
@@ -221,7 +196,7 @@ class Api
         if (! preg_match_all($actionAttendu, $requete, $matches)) {
             print_r($matches);
             echo "$actionAttendu $requete";
-            throw new LogicException('Requete illogique au vu de src\la methode api utilise', CodeDeRetourApi::BadRequest->value);
+            throw new LogicException('Requete illogique au vu de src\la methode api utilise', utils\CodeDeRetourApi::BadRequest->value);
         }
 
     }
@@ -230,7 +205,7 @@ class Api
         ?string $requete = null
     ): void {
         if (($requete == null)) {
-            throw new InvalidArgumentException('Aucune requete ou fonction donnee', CodeDeRetourApi::BadRequest->value);
+            throw new InvalidArgumentException('Aucune requete ou fonction donnee', utils\CodeDeRetourApi::BadRequest->value);
         }
     }
 
@@ -238,14 +213,14 @@ class Api
     {
         $tablesAutorisees = ['internaute', 'groupe'];
         if (! in_array($table, $tablesAutorisees)) {
-            throw new InvalidArgumentException('Table non autorisee.', CodeDeRetourApi::BadRequest->value);
+            throw new InvalidArgumentException('Table non autorisee.', utils\CodeDeRetourApi::BadRequest->value);
         }
     }
 
     private function verificationInjection(string $table): void
     {
         if (! preg_match('/^[a-zA-Z0-9_]+$/', $table)) {
-            throw new InvalidArgumentException('Nom de table invalide.', CodeDeRetourApi::BadRequest->value);
+            throw new InvalidArgumentException('Nom de table invalide.', utils\CodeDeRetourApi::BadRequest->value);
         }
     }
 }

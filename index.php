@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\src;
+namespace Koyok\democratia;
 
 use DateTime;
 use Exception;
@@ -8,11 +8,14 @@ use Jose\Component\Checker;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature;
-use Koyok\democratia\Extension;
+use Koyok\democratia\data\query\Api;
+use Koyok\democratia\domain\Extension;
+use Koyok\democratia\domain\utils;
+use Koyok\democratia\domain\utils\ImageManager;
 use Symfony\Component\Dotenv\Dotenv;
 use Throwable;
 
-require_once '../vendor/autoload.php';
+require_once './vendor/autoload.php';
 
 error_reporting(E_ERROR | E_PARSE);
 ini_set('display_errors', 0);
@@ -36,7 +39,7 @@ $uri .= $_SERVER['HTTP_HOST'];
 $client = $_SERVER['REMOTE_ADDR'];
 
 if ($requeteRaw === null) {
-    http_response_code(CodeDeRetourApi::BadRequest->value);
+    http_response_code(utils\CodeDeRetourApi::BadRequest->value);
     echo json_encode(['success' => false, 'message' => 'no parameters']);
     exit;
 }
@@ -70,7 +73,7 @@ try {
         new Checker\IssuerChecker([$uri]),
         new Checker\AudienceChecker($client),
     ];
-    $keyFile = dirname(__DIR__, 1).'/config/private.key';
+    $keyFile = dirname(__DIR__).'/server/src/data/config/private.key';
     if (file_exists($keyFile)) {
         $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
     } else {
@@ -79,7 +82,12 @@ try {
     }
 
     if (empty($header['Authorization']) && $requete != 'login') {
-        throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
+        if ($_SERVER['SCRIPT_NAME'] == '/index.php' && $_SERVER['REQUEST_URI'] == '/') {
+            header('Location: index.html');
+            exit;
+        } else {
+            throw new Exception('Entête incorrect', utils\CodeDeRetourApi::Unauthorized->value);
+        }
     } elseif ($requete == 'login' && $requestMethod == 'GET') {
 
         $payloadAcces = json_encode([
@@ -110,7 +118,7 @@ try {
 
         $tokenAccess = $jwtSerializer->serialize($jws);
         $tokenRefresh = $jwtSerializer->serialize($jwsRefresh);
-        http_response_code(CodeDeRetourApi::OK->value);
+        http_response_code(utils\CodeDeRetourApi::OK->value);
         echo json_encode(['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh]]);
         exit;
     } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
@@ -131,15 +139,15 @@ try {
         $headerCheckerManager->check($jws, 0);
     } catch (Checker\InvalidClaimException $th) {
         if ($th->getClaim() == 'exp') {
-            throw new Exception('Token expiré', CodeDeRetourApi::Unauthorized->value);
+            throw new Exception('Token expiré', utils\CodeDeRetourApi::Unauthorized->value);
         }
         if ($th->getClaim() == 'sub') {
-            throw new Exception('Utilisateur incorérent', CodeDeRetourApi::Unauthorized->value);
+            throw new Exception('Utilisateur incorérent', utils\CodeDeRetourApi::Unauthorized->value);
             // TODO : lors d'une future phase de développement, renvoyé unauthorized qu'une fois qu'une validation par mail sera faite
             // TODO : générer une empreinte d'appareil unique et si une nouvelle est détecté alors prévenir par mail
         }
 
-        throw new Exception('Token invalide', CodeDeRetourApi::Malicious->value);
+        throw new Exception('Token invalide', utils\CodeDeRetourApi::Malicious->value);
     }
     $account = $payload['sub'];
     $bucket = Bucket::deserialiser($account);
@@ -148,14 +156,14 @@ try {
         if ($nombreBille >= Bucket::$MAXIMUM_BILLES_USER) {
             header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + Bucket::$tempNettoyage);
             header('Retry-After: 60');
-            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
+            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", utils\CodeDeRetourApi::RateLimit->value);
         } else {
             $bucket->addRequest();
             header('X-RateLimit-Limit: '.Bucket::$MAXIMUM_BILLES_USER);
             header('X-RateLimit-Remaining: '.Bucket::$MAXIMUM_BILLES_USER - $bucket->nombreBilles);
         }
     } elseif (! Bucket::serialiser($account)) {
-        throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
+        throw new Exception('Error Processing Request', utils\CodeDeRetourApi::InternalServerError->value);
     }
 
     $api = new Api;
@@ -163,7 +171,7 @@ try {
     switch ($requestMethod) {
         case 'GET':
             $test = '/SELECT/i';
-            $requeteFinal = $api->tryGetAction($requete, GetMethode::class);
+            $requeteFinal = $api->tryGetAction($requete, utils\GetMethode::class);
             if ($requete == 'getMethode') {
                 http_response_code($api->getCode());
                 $tableauRetourne = [
@@ -174,16 +182,15 @@ try {
                 echo json_encode($tableauRetourne, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                 exit;
             } elseif ($requete == 'obtenirImage') {
-                GetGroupeImage($parameters[0]);
+                ImageManager::GetGroupeImage($parameters[0]);
             } elseif ($requete == 'relogin') {
-                $api->reponseApi();
+
                 http_response_code($api->getCode());
-                $api->get($parameters, 'SELECT * FROM internaute WHERE courriel=?');
-                $api->reponseApi();
+                $result = $api->execute($parameters, 'SELECT * FROM internaute WHERE courriel=?');
                 $resultatFinal = [
                     'success' => $api->isSuccess,
                     'message' => $api->getMessage(),
-                    'data' => $api->getTabRetour(),
+                    'data' => $result,
                 ];
                 echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                 exit;
@@ -192,44 +199,44 @@ try {
                 $api->verificationBonneAction($requete, $test);
                 $requeteFinal = $requete;
             }
-            $api->get($parameters, $requeteFinal);
+
             break;
         case 'POST':
             $test = '/INSERT/i';
-            $requeteFinal = $api->tryGetAction($requete, PostMethode::class);
+            $requeteFinal = $api->tryGetAction($requete, utils\PostMethode::class);
             if ($requeteFinal == null) {
                 $api->verificationFormatage($parameters, $requete);
                 $api->verificationBonneAction($requete, $test);
                 $requeteFinal = $requete;
             } elseif ($requete == 'publierImage') {
-                UploadGroupeImage($parameters[0]);
+                ImageManager::UploadGroupeImage($parameters[0]);
             }
-            $api->post($parameters, $requeteFinal);
+
             break;
         case 'PATCH':
             $test = '/UPDATE/i';
-            $requeteFinal = $api->tryGetAction($requete, PatchMethode::class);
+            $requeteFinal = $api->tryGetAction($requete, utils\PatchMethode::class);
             if ($requeteFinal == null) {
                 $api->verificationFormatage($parameters, $requete);
                 $api->verificationBonneAction($requete, $test);
                 $requeteFinal = $requete;
             }
-            $api->patch($parameters, $requeteFinal);
+
             break;
         case 'DELETE':
             $test = '/DELETE/i';
-            $requeteFinal = $api->tryGetAction($requete, DeleteMethode::class);
+            $requeteFinal = $api->tryGetAction($requete, utils\DeleteMethode::class);
             if ($requeteFinal == null) {
                 $api->verificationFormatage($parameters, $requete);
                 $api->verificationBonneAction($requete, $test);
                 $requeteFinal = $requete;
             }
-            $api->delete($parameters, $requeteFinal);
+
             break;
         default:
-            throw new Exception('Aucune methode precise', CodeDeRetourApi::BadRequest->value);
+            throw new Exception('Aucune methode precise', utils\CodeDeRetourApi::BadRequest->value);
     }
-    $retour = $api->getTabRetour();
+    $retour = $api->execute($parameters, $requeteFinal);
     if (empty($retour['data']) && $retour['success'] === true) {
         $retour['message'] = 'Connexion réussie mais aucun résultat trouvé pour cette requête.';
     }
@@ -245,7 +252,7 @@ try {
         'success' => false,
         'message' => 'Une erreur inattendu est survenu',
     ];
-    if ($e->getCode() == CodeDeRetourApi::Malicious->value) {
+    if ($e->getCode() == utils\CodeDeRetourApi::Malicious->value) {
         $reponse['message'] = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
     }
     if ($isInDeveloppment) {
@@ -260,8 +267,6 @@ try {
     exit;
 }
 
-$api->reponseApi();
 http_response_code($api->getCode());
-$resultatFinal = $api->getTabRetour();
 echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 exit;
