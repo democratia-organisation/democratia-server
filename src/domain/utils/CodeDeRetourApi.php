@@ -33,6 +33,11 @@ enum CodeDeRetourApi: int
     case NoContent = 204;
 
     /**
+     * 301 Redirected : La rêquete a été redirigé
+     */
+    case Redirected = 301;
+
+    /**
      * 400 Bad Request : La requête est mal formée.
      */
     case BadRequest = 400;

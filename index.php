@@ -4,10 +4,6 @@ namespace Koyok\democratia;
 
 use DateTime;
 use Exception;
-use Jose\Component\Checker;
-use Jose\Component\Core\AlgorithmManager;
-use Jose\Component\KeyManagement\JWKFactory;
-use Jose\Component\Signature;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\domain\Extension;
 use Koyok\democratia\domain\utils;
@@ -65,91 +61,24 @@ if (isset($_GET['parameters'])) {
 
 try {
     $header = getallheaders();
-    $algorithmManager = new AlgorithmManager([new Signature\Algorithm\ES256]);
-    $jwsBuilder = new Signature\JWSBuilder($algorithmManager);
-    $jwtSerializer = new Signature\Serializer\CompactSerializer;
-    $clock = new Extension\ClockImplementation;
-    $arrayChecker = [
-        new Checker\ExpirationTimeChecker(clock: $clock),
-        new Checker\IssuerChecker([$uri]),
-        new Checker\AudienceChecker($client),
-    ];
-    $keyFile = dirname(__DIR__).'/server/src/data/config/private.key';
-    if (file_exists($keyFile)) {
-        $privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
-    } else {
-        $privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
-        file_put_contents($keyFile, json_encode($privateKey->jsonSerialize()));
-    }
-
     if (empty($header['Authorization']) && $requete != 'login') {
         if ($_SERVER['SCRIPT_NAME'] == '/index.php' && $_SERVER['REQUEST_URI'] == '/') {
+            http_response_code(utils\CodeDeRetourApi::Redirected->value);
             header('Location: index.html');
             exit;
         } else {
             throw new Exception('Entête incorrect', utils\CodeDeRetourApi::Unauthorized->value);
         }
-    } elseif ($requete == 'login' && $requestMethod == 'GET') {
+    }
 
-        $payloadAcces = json_encode([
-            'iss' => $uri,
-            'aud' => $client,
-            'sub' => $parameters[0],
-            'iat' => time(),
-            'exp' => time() + 3600,
-        ]);
-        $payloadRefresh = json_encode([
-            'iss' => $uri,
-            'aud' => $client,
-            'sub' => $parameters[0],
-            'iat' => time(),
-            'exp' => time() + 3600 * 24 * 7,
-        ]);
-
-        $jws = $jwsBuilder
-            ->create()
-            ->withPayload($payloadAcces)
-            ->addSignature($privateKey, ['alg' => 'ES256'])
-            ->build();
-        $jwsRefresh = $jwsBuilder
-            ->create()
-            ->withPayload($payloadRefresh)
-            ->addSignature($privateKey, ['alg' => 'ES256'])
-            ->build();
-
-        $tokenAccess = $jwtSerializer->serialize($jws);
-        $tokenRefresh = $jwtSerializer->serialize($jwsRefresh);
-        http_response_code(utils\CodeDeRetourApi::OK->value);
-        echo json_encode(['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh]]);
-        exit;
+    $jwtChecker = new middleware\JwtChecker($uri, $client, $header);
+    if ($requete == 'login' && $requestMethod == 'GET') {
+        $jwtChecker->GenerateKey($parameters[0]);
     } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
-        $arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
-
+        $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($email);
     }
-    $claimChecker = new Checker\ClaimCheckerManager($arrayChecker);
-    $jwsVerifier = new Signature\JWSVerifier($algorithmManager);
-    $headerCheckerManager = new Checker\HeaderCheckerManager([new Checker\AlgorithmChecker(['ES256'])], [new Signature\JWSTokenSupport]);
-    $token = str_replace('Bearer ', '', $header['Authorization'] ?? '');
-    $jws = $jwtSerializer->unserialize($token);
-    $payload = json_decode($jws->getPayload(), true);
-    try {
-        if (! $jwsVerifier->verifyWithKey($jws, $privateKey, 0)) {
-            throw new Exception;
-        }
-        $claimValide = $claimChecker->check($payload);
-        $headerCheckerManager->check($jws, 0);
-    } catch (Checker\InvalidClaimException $th) {
-        if ($th->getClaim() == 'exp') {
-            throw new Exception('Token expiré', utils\CodeDeRetourApi::Unauthorized->value);
-        }
-        if ($th->getClaim() == 'sub') {
-            throw new Exception('Utilisateur incorérent', utils\CodeDeRetourApi::Unauthorized->value);
-            // TODO : lors d'une future phase de développement, renvoyé unauthorized qu'une fois qu'une validation par mail sera faite
-            // TODO : générer une empreinte d'appareil unique et si une nouvelle est détecté alors prévenir par mail
-        }
-
-        throw new Exception('Token invalide', utils\CodeDeRetourApi::Malicious->value);
-    }
+    $jwtChecker->CheckJWT();
+    $payload = $jwtChecker->GetPayload();
     $account = $payload['sub'];
     $bucket = Bucket::deserialiser($account);
     if (Bucket::hasABucket($account)) {
@@ -168,7 +97,7 @@ try {
     }
 
     $api = new Api;
-    $api->verificationValeurDonne($requete);
+    middleware\Verificator::verificationValeurDonne($requete);
     switch ($requestMethod) {
         case 'GET':
             $test = '/SELECT/i';
@@ -196,8 +125,8 @@ try {
                 echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
                 exit;
             } elseif ($requeteFinal == null) {
-                $api->verificationFormatage($parameters, $requete);
-                $api->verificationBonneAction($requete, $test);
+                middleware\Verificator::verificationFormatage($parameters, $requete);
+                middleware\Verificator::verificationBonneAction($requete, $test);
                 $requeteFinal = $requete;
             }
 
@@ -206,8 +135,8 @@ try {
             $test = '/INSERT/i';
             $requeteFinal = $api->tryGetAction($requete, utils\PostMethode::class);
             if ($requeteFinal == null) {
-                $api->verificationFormatage($parameters, $requete);
-                $api->verificationBonneAction($requete, $test);
+                middleware\Verificator::verificationFormatage($parameters, $requete);
+                middleware\Verificator::verificationBonneAction($requete, $test);
                 $requeteFinal = $requete;
             } elseif ($requete == 'publierImage') {
                 ImageManager::UploadGroupeImage($parameters[0]);
@@ -218,8 +147,8 @@ try {
             $test = '/UPDATE/i';
             $requeteFinal = $api->tryGetAction($requete, utils\PatchMethode::class);
             if ($requeteFinal == null) {
-                $api->verificationFormatage($parameters, $requete);
-                $api->verificationBonneAction($requete, $test);
+                middleware\Verificator::verificationFormatage($parameters, $requete);
+                middleware\Verificator::verificationBonneAction($requete, $test);
                 $requeteFinal = $requete;
             }
 
@@ -228,8 +157,8 @@ try {
             $test = '/DELETE/i';
             $requeteFinal = $api->tryGetAction($requete, utils\DeleteMethode::class);
             if ($requeteFinal == null) {
-                $api->verificationFormatage($parameters, $requete);
-                $api->verificationBonneAction($requete, $test);
+                middleware\Verificator::verificationFormatage($parameters, $requete);
+                middleware\Verificator::verificationBonneAction($requete, $test);
                 $requeteFinal = $requete;
             }
 
