@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\domain\utils;
+namespace Koyok\democratia\middleware;
 
 final class QueryScraper
 {

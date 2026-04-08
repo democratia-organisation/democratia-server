@@ -12,6 +12,7 @@ use Koyok\democratia\data\query\Api;
 use Koyok\democratia\domain\Extension;
 use Koyok\democratia\domain\utils;
 use Koyok\democratia\domain\utils\ImageManager;
+use Koyok\democratia\middleware\Bucket;
 use Symfony\Component\Dotenv\Dotenv;
 use Throwable;
 
@@ -268,5 +269,5 @@ try {
 }
 
 http_response_code($api->getCode());
-echo json_encode($resultatFinal, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+echo json_encode($retour, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 exit;

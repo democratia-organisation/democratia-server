@@ -1,10 +1,10 @@
 <?php
 
-namespace Koyok\democratia\domain\utils;
+namespace Koyok\democratia\middleware;
 
 use EvTimer;
 use Exception;
-use Koyok\democratia\middleware\Bucket;
+use Koyok\democratia\domain\utils\CodeDeRetourApi;
 
 final class CleaningBucket
 {
