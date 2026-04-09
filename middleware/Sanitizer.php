@@ -14,8 +14,8 @@ final class Sanitizer
 
         $requeteRaw = $_GET['request'] ?? '';
         if ($requeteRaw === '') {
-            if ($_SERVER['REQUEST_URI'] == '/documentation') {
-                $requete = 'documentation';
+            if ($_SERVER['REQUEST_URI'] == '/dashboard') {
+                $requete = 'dashboard';
             } else {
                 $error = ['success' => false, 'message' => 'no parameters', 'code' => utils\CodeDeRetourApi::BadRequest->value];
             }

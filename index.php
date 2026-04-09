@@ -7,6 +7,7 @@ use Exception;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\domain\Extension;
 use Koyok\democratia\domain\utils;
+use Koyok\democratia\domain\utils\CodeDeRetourApi;
 use Throwable;
 
 require_once './vendor/autoload.php';
@@ -42,33 +43,35 @@ switch ($requestMethod) {
         $methodeToCheck = utils\DeleteMethode::class;
         break;
     default:
-        throw new Exception("Méthode non prise en compte par l'api", utils\CodeDeRetourApi::BadRequest->value);
+        throw new Exception("Méthode non prise en compte par l'api", CodeDeRetourApi::BadRequest->value);
 }
 
 try {
+    $header = getallheaders();
     if (! empty($error)) {
         throw new Exception($error['message'], $error['code']);
     }
     if (empty($header['Authorization']) && $requete != 'login') {
-        if ($requete == 'documentation') {
-            // TODO : limiter l'accès qu'à un certains nombre d'utilisateur authentifié
-            http_response_code(utils\CodeDeRetourApi::Redirected->value);
-            header('Location: index.html');
+        if ($requete == 'dashboard') {
+            if ($isInDeveloppment || $isInProduction) {
+                middleware\ServeurConfiguration::Dashboard($isInDeveloppment, $isInProduction);
+            } else {
+                throw new Exception('Aucun acces', CodeDeRetourApi::Malicious->value);
+            }
             exit;
         } else {
-            throw new Exception('Entête incorrect', utils\CodeDeRetourApi::Unauthorized->value);
+            throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
         }
     }
-    $header = getallheaders();
-    $jwtChecker = new middleware\JwtChecker($uri, $client, $header);
+
+    $jwtChecker = new middleware\JwtChecker($uri, $client);
     if ($requete == 'login' && $requestMethod == 'GET') {
         $jwtChecker->GenerateKey($parameters[0]);
     } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
         $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($email);
     }
-
-    $account = $jwtChecker->GetPayload()['sub'];
     $jwtChecker->CheckJWT();
+    $account = $jwtChecker->GetPayload($header)['sub'];
 
     $bucket = middleware\Bucket::deserialiser($account);
     if (middleware\Bucket::hasABucket($account)) {
@@ -76,15 +79,16 @@ try {
         if ($nombreBille >= middleware\Bucket::$MAXIMUM_BILLES_USER) {
             header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + middleware\Bucket::$tempNettoyage);
             header('Retry-After: 60');
-            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", utils\CodeDeRetourApi::RateLimit->value);
+            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
         } else {
             $bucket->addRequest();
             header('X-RateLimit-Limit: '.middleware\Bucket::$MAXIMUM_BILLES_USER);
             header('X-RateLimit-Remaining: '.middleware\Bucket::$MAXIMUM_BILLES_USER - $bucket->nombreBilles);
         }
     } elseif (! middleware\Bucket::serialiser($account)) {
-        throw new Exception('Error Processing Request', utils\CodeDeRetourApi::InternalServerError->value);
+        throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
     }
+
     middleware\RequestVerificator::verificationValeurDonne($requete);
     middleware\RequestVerificator::verificationFormatage($parameters, $requete);
     switch ($requete) {
@@ -101,13 +105,16 @@ try {
             $retour = $api->execute($parameters, $requete);
             break;
     }
+
 } catch (Throwable $e) {
+    http_response_code($e->getCode());
     $reponse = [
         'success' => false,
         'message' => 'Une erreur inattendu est survenu',
     ];
-    if ($e->getCode() == utils\CodeDeRetourApi::Malicious->value && $isInProduction) {
-        $reponse['message'] = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+    if ($e->getCode() == CodeDeRetourApi::Malicious->value && $isInProduction) {
+        header('Location: https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+        exit;
     }
     if ($isInDeveloppment) {
         $reponse['file'] = $e->getFile();
@@ -116,13 +123,12 @@ try {
         $reponse['message'] = $e->getMessage();
         $reponse['stackTrace'] = $e->getTraceAsString();
     }
-    http_response_code($e->getCode());
     echo json_encode($reponse, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
     exit;
 }
 if (empty($retour['data']) && $retour['success'] === true) {
     $retour['message'] = 'Connexion réussie mais aucun résultat trouvé pour cette requête.';
-    $retour['code'] = utils\CodeDeRetourApi::NoContent->value;
+    $retour['code'] = CodeDeRetourApi::NoContent->value;
 }
 middleware\Sanitizer::PostSanitize($retour);
 http_response_code($retour['code']);
