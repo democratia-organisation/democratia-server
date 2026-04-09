@@ -36,7 +36,7 @@ final class JwtChecker
 
     private Signature\Serializer\CompactSerializer $jwtSerializer;
 
-    public function __construct(string $uri, string $client)
+    public function __construct(string $uri, string $client, array $header)
     {
         $this->uri = $uri;
         $this->client = $client;
@@ -48,6 +48,9 @@ final class JwtChecker
             new Checker\AudienceChecker($this->client),
         ];
         $this->jwtSerializer = new Signature\Serializer\CompactSerializer;
+        $token = str_replace('Bearer ', '', $header['Authorization']);
+        $this->jws = $this->jwtSerializer->unserialize($token);
+        $this->payload = json_decode($this->jws->getPayload(), true);
         $keyFile = dirname(__DIR__, 1).'/src/data/config/private.key';
         if (file_exists($keyFile)) {
             $this->privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
@@ -125,11 +128,8 @@ final class JwtChecker
 
     }
 
-    public function GetPayload(array $header): array
+    public function GetPayload(): array
     {
-        $token = str_replace('Bearer ', '', $header['Authorization']);
-        $this->jws = $this->jwtSerializer->unserialize($token);
-        $this->payload = json_decode($this->jws->getPayload(), true);
 
         return $this->payload;
     }

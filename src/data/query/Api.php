@@ -76,6 +76,7 @@ class Api
         $this->arrayRetour['success'] = $this->isSuccess;
         $this->arrayRetour['message'] = $this->messageDeRetour;
         $this->arrayRetour['data'] = $this->valeurRetourne;
+        $this->arrayRetour['code'] = $this->codeDeRetourApi;
 
         return $this->arrayRetour;
     }

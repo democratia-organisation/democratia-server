@@ -59,8 +59,8 @@ final class ImageManager
     public static function GetGroupeImage(string $nom_image): array
     {
         try {
-            $baseDir = dirname(__DIR__, 3).'/images/';
-            $fileName = file_exists("$baseDir.$nom_image") ? "$baseDir.$nom_image" : "$baseDir.default-groupe.png.jpeg";
+            $baseDir = dirname(__DIR__, 3).'/images';
+            $fileName = file_exists("$baseDir/$nom_image") ? "$baseDir/$nom_image" : "$baseDir/defaultgroupe.png.jpeg";
             $filePath = $fileName;
             $mimeType = mime_content_type($filePath);
 

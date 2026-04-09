@@ -64,14 +64,14 @@ try {
         }
     }
 
-    $jwtChecker = new middleware\JwtChecker($uri, $client);
+    $jwtChecker = new middleware\JwtChecker($uri, $client, $header);
     if ($requete == 'login' && $requestMethod == 'GET') {
         $jwtChecker->GenerateKey($parameters[0]);
     } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
-        $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($email);
+        $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
     }
     $jwtChecker->CheckJWT();
-    $account = $jwtChecker->GetPayload($header)['sub'];
+    $account = $jwtChecker->GetPayload()['sub'];
 
     $bucket = middleware\Bucket::deserialiser($account);
     if (middleware\Bucket::hasABucket($account)) {
@@ -90,7 +90,6 @@ try {
     }
 
     middleware\RequestVerificator::verificationValeurDonne($requete);
-    middleware\RequestVerificator::verificationFormatage($parameters, $requete);
     switch ($requete) {
         case 'obtenirImage':
             $retour = utils\ImageManager::GetGroupeImage($parameters[0]);
@@ -99,8 +98,9 @@ try {
             $retour = utils\ImageManager::UploadGroupeImage($parameters[0]);
             break;
         default:
+            middleware\RequestVerificator::verificationFormatage($parameters, $requete);
             middleware\RequestVerificator::verificationBonneAction($requete, $test);
-            $potentielAction = $api->tryGetAction($requete, $methodeToChekc);
+            $potentielAction = $api->tryGetAction($requete, $methodeToCheck);
             $requete = $potentielAction ?? $requete;
             $retour = $api->execute($parameters, $requete);
             break;
