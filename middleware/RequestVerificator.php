@@ -2,6 +2,7 @@
 
 namespace Koyok\democratia\middleware;
 
+use Exception;
 use InvalidArgumentException;
 use Koyok\democratia\domain\utils;
 use LogicException;
@@ -62,6 +63,17 @@ final class RequestVerificator
         if (! in_array($table, $tablesAutorisees)) {
             throw new InvalidArgumentException('Table non autorisee.', utils\CodeDeRetourApi::BadRequest->value);
         }
+    }
+
+    public function verifierPasDeRequeteSQL(string $requete): void
+    {
+        $enteteRequeteSQL = ['SELECT', 'UPDATE', 'DELETE', 'CREATE', 'DROP'];
+        foreach ($enteteRequeteSQL as $key => $value) {
+            if (str_contains($requete, $value)) {
+                throw new Exception('Error Processing Request', 1);
+            }
+        }
+
     }
 
     private function verificationInjection(string $table): void
