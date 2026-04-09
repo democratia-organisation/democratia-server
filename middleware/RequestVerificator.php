@@ -6,7 +6,7 @@ use InvalidArgumentException;
 use Koyok\democratia\domain\utils;
 use LogicException;
 
-final class Verificator
+final class RequestVerificator
 {
     public static function verificationFormatage(
         array $parameters,
@@ -33,7 +33,6 @@ final class Verificator
                 throw new InvalidArgumentException("Requete prepare alors qu'aucun parametre n'est donnee", utils\CodeDeRetourApi::BadRequest->value);
             }
         }
-
     }
 
     public static function verificationBonneAction(
