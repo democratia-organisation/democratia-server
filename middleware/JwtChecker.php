@@ -47,6 +47,9 @@ final class JwtChecker
             new Checker\IssuerChecker([$this->uri]),
             new Checker\AudienceChecker($this->client),
         ];
+        $token = str_replace('Bearer ', '', $header['Authorization']);
+        $this->jws = $this->jwtSerializer->unserialize($token);
+        $this->payload = json_decode($this->jws->getPayload(), true);
         $this->jwtSerializer = new Signature\Serializer\CompactSerializer;
         $keyFile = dirname(__DIR__, 1).'/src/data/config/private.key';
         if (file_exists($keyFile)) {
@@ -125,12 +128,8 @@ final class JwtChecker
 
     }
 
-    public function GetPayload(array $header): array
+    public function GetPayload(): array
     {
-        $token = str_replace('Bearer ', '', $header['Authorization'] ?? '');
-        $this->jws = $this->jwtSerializer->unserialize($token);
-        $this->payload = json_decode($this->jws->getPayload(), true);
-
         return $this->payload;
     }
 }

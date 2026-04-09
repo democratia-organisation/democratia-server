@@ -7,7 +7,6 @@ use Exception;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\domain\Extension;
 use Koyok\democratia\domain\utils;
-use Koyok\democratia\domain\utils\ImageManager;
 use Throwable;
 
 require_once './vendor/autoload.php';
@@ -19,17 +18,7 @@ header('Content-Type: application/json');
 
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 [$uri,$client, $isInDeveloppment, $isInProduction] = middleware\ServeurConfiguration::Configure();
-[$requete, $parameters] = middleware\Sanitizer::Sanitize();
-
-$header = getallheaders();
-$jwtChecker = new middleware\JwtChecker($uri, $client, $header);
-
-if ($requete == 'login' && $requestMethod == 'GET') {
-    $jwtChecker->GenerateKey($parameters[0]);
-} elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
-    $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($email);
-}
-$account = $jwtChecker->GetPayload($header)['sub'];
+[$requete, $parameters, $error] = middleware\Sanitizer::Sanitize();
 
 $test = '';
 $methodeToCheck = '';
@@ -57,8 +46,12 @@ switch ($requestMethod) {
 }
 
 try {
+    if (! empty($error)) {
+        throw new Exception($error['message'], $error['code']);
+    }
     if (empty($header['Authorization']) && $requete != 'login') {
-        if ($_SERVER['SCRIPT_NAME'] == '/index.php' && $_SERVER['REQUEST_URI'] == '/documentation') {
+        if ($requete == 'documentation') {
+            // TODO : limiter l'accès qu'à un certains nombre d'utilisateur authentifié
             http_response_code(utils\CodeDeRetourApi::Redirected->value);
             header('Location: index.html');
             exit;
@@ -66,6 +59,15 @@ try {
             throw new Exception('Entête incorrect', utils\CodeDeRetourApi::Unauthorized->value);
         }
     }
+    $header = getallheaders();
+    $jwtChecker = new middleware\JwtChecker($uri, $client, $header);
+    if ($requete == 'login' && $requestMethod == 'GET') {
+        $jwtChecker->GenerateKey($parameters[0]);
+    } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
+        $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($email);
+    }
+
+    $account = $jwtChecker->GetPayload()['sub'];
     $jwtChecker->CheckJWT();
 
     $bucket = middleware\Bucket::deserialiser($account);
@@ -87,10 +89,10 @@ try {
     middleware\RequestVerificator::verificationFormatage($parameters, $requete);
     switch ($requete) {
         case 'obtenirImage':
-            $retour = ImageManager::GetGroupeImage($parameters[0]);
+            $retour = utils\ImageManager::GetGroupeImage($parameters[0]);
             break;
         case 'publierImage':
-            $retour = ImageManager::UploadGroupeImage($parameters[0]);
+            $retour = utils\ImageManager::UploadGroupeImage($parameters[0]);
             break;
         default:
             middleware\RequestVerificator::verificationBonneAction($requete, $test);
