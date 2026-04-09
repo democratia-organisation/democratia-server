@@ -64,13 +64,17 @@ try {
         }
     }
 
-    $jwtChecker = new middleware\JwtChecker($uri, $client, $header);
+    $jwtChecker = new middleware\JwtChecker($uri, $client);
     if ($requete == 'login' && $requestMethod == 'GET') {
-        $jwtChecker->GenerateKey($parameters[0]);
+        $retour = $jwtChecker->GenerateKey($parameters[0]);
+        goto a;
     } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
         $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
+        $jwtChecker->CheckJWT($header);
+    } else {
+        $jwtChecker->CheckJWT($header);
     }
-    $jwtChecker->CheckJWT();
+
     $account = $jwtChecker->GetPayload()['sub'];
 
     $bucket = middleware\Bucket::deserialiser($account);
@@ -130,7 +134,11 @@ if (empty($retour['data']) && $retour['success'] === true) {
     $retour['message'] = 'Connexion réussie mais aucun résultat trouvé pour cette requête.';
     $retour['code'] = CodeDeRetourApi::NoContent->value;
 }
+a:
+if (empty($reponse['code'])) {
+    $reponse['code'] = CodeDeRetourApi::OK->value;
+}
 middleware\Sanitizer::PostSanitize($retour);
-http_response_code($retour['code']);
+http_response_code($reponse['code']);
 echo json_encode($retour, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 exit;

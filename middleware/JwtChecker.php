@@ -28,6 +28,8 @@ final class JwtChecker
 
     private JWS $jws;
 
+    private Extension\ClockImplementation $clock;
+
     private static int $REFRESH_TIME = 3600;
 
     private static int $KEY_TIME = 3600 * 24 * 7;
@@ -36,21 +38,38 @@ final class JwtChecker
 
     private Signature\Serializer\CompactSerializer $jwtSerializer;
 
-    public function __construct(string $uri, string $client, array $header)
+    public function __construct(string $uri, string $client)
     {
         $this->uri = $uri;
         $this->client = $client;
-        $clock = new Extension\ClockImplementation;
+        $this->clock = new Extension\ClockImplementation;
         $this->algorithmManager = new AlgorithmManager([new Signature\Algorithm\ES256]);
         $this->arrayChecker = [
-            new Checker\ExpirationTimeChecker(clock: $clock),
+            new Checker\ExpirationTimeChecker(clock: $this->clock),
             new Checker\IssuerChecker([$this->uri]),
             new Checker\AudienceChecker($this->client),
         ];
         $this->jwtSerializer = new Signature\Serializer\CompactSerializer;
-        $token = str_replace('Bearer ', '', $header['Authorization']);
-        $this->jws = $this->jwtSerializer->unserialize($token);
-        $this->payload = json_decode($this->jws->getPayload(), true);
+        $algorithmManager = new AlgorithmManager([
+            new Signature\Algorithm\None,
+        ]);
+
+        $jwsBuilder = new Signature\JWSBuilder($algorithmManager);
+        $jwk = new JWK([
+            'kty' => 'none',
+        ]);
+
+        $payload = json_encode([
+            'iat' => time(),
+            'exp' => time() + 3600,
+            'iss' => 'Mon Application',
+        ]);
+
+        $this->jws = $jwsBuilder
+            ->create()
+            ->withPayload($payload)
+            ->addSignature($jwk, ['alg' => 'none'])
+            ->build();
         $keyFile = dirname(__DIR__, 1).'/src/data/config/private.key';
         if (file_exists($keyFile)) {
             $this->privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
@@ -60,22 +79,24 @@ final class JwtChecker
         }
     }
 
-    public function GenerateKey(string $email): string|false
+    public function GenerateKey(string $email): array
     {
+
+        $now = $this->clock->now()->getTimestamp();
         $jwsBuilder = new Signature\JWSBuilder($this->algorithmManager);
         $payloadAcces = json_encode([
             'iss' => $this->uri,
             'aud' => $this->client,
             'sub' => $email,
-            'iat' => time(),
-            'exp' => time() + $this->KEY_TIME,
+            'iat' => $now,
+            'exp' => $now + $this->KEY_TIME,
         ]);
         $payloadRefresh = json_encode([
             'iss' => $this->uri,
             'aud' => $this->client,
             'sub' => $email,
-            'iat' => time(),
-            'exp' => time() + $this->REFRESH_TIME,
+            'iat' => $now,
+            'exp' => $now + $this->REFRESH_TIME,
         ]);
         $jws = $jwsBuilder
             ->create()
@@ -91,7 +112,7 @@ final class JwtChecker
         $tokenRefresh = $this->jwtSerializer->serialize($jwsRefresh);
         http_response_code(CodeDeRetourApi::OK->value);
 
-        return json_encode(['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh]]);
+        return ['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh]];
     }
 
     /**
@@ -99,12 +120,13 @@ final class JwtChecker
      *
      * @throws InvalidClaimException|Exception Si l'erreur concerne sub ou exp, une erreur métier est jetté
      */
-    public function CheckJWT(): void
+    public function CheckJWT(array $header): void
     {
+        $this->SetJWS($header);
         $claimChecker = new Checker\ClaimCheckerManager($this->arrayChecker);
         $jwsVerifier = new Signature\JWSVerifier($this->algorithmManager);
         $headerCheckerManager = new Checker\HeaderCheckerManager([new Checker\AlgorithmChecker(['ES256'])], [new Signature\JWSTokenSupport]);
-
+        $this->payload = json_decode($this->jws->getPayload(), true);
         try {
             if (! $jwsVerifier->verifyWithKey($this->jws, $this->privateKey, 0)) {
                 throw new Exception("La clé n'est pas la bonne", CodeDeRetourApi::Malicious->value);
@@ -128,8 +150,15 @@ final class JwtChecker
 
     }
 
+    private function SetJWS(array $header): void
+    {
+        $token = str_replace('Bearer ', '', $header['Authorization']);
+        $this->jws = $this->jwtSerializer->unserialize($token);
+    }
+
     public function GetPayload(): array
     {
+        $this->payload = json_decode($this->jws->getPayload(), true);
 
         return $this->payload;
     }
