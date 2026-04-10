@@ -12,8 +12,7 @@ use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature;
 use Jose\Component\Signature\JWS;
 use Koyok\democratia\domain\Extension;
-
-\CodeDeRetourApi;
+use Koyok\democratia\lib\CodeDeRetourApi;
 
 final class JwtChecker
 {

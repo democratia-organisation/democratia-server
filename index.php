@@ -94,11 +94,11 @@ try {
     middleware\RequestVerificator::verificationValeurDonne($requete);
     switch ($requete) {
         case 'obtenirImage':
-            $retour = lib\ImageManager::GetGroupeImage($parameters[0]);
-            break;
+            lib\ImageManager::GetGroupeImage($parameters[0]);
+            // pas de break car les deux fonction exit le programme d'elles mêmes
         case 'publierImage':
-            $retour = lib\ImageManager::UploadGroupeImage($parameters[0]);
-            break;
+            lib\ImageManager::UploadGroupeImage($parameters[0]);
+
         default:
             middleware\RequestVerificator::verificationFormatage($parameters, $requete);
             middleware\RequestVerificator::verificationBonneAction($requete, $test);

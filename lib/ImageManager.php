@@ -7,7 +7,7 @@ use Koyok\democratia\data\query\Api;
 
 final class ImageManager
 {
-    public static function UploadGroupeImage(string $id): array
+    public static function UploadGroupeImage(string $id): void
     {
         $api = new Api;
         $targetDir = __DIR__.'/images/';
@@ -18,19 +18,22 @@ final class ImageManager
             $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
             if ($_FILES['image']['size'] > $maxFileSize) {
-                return ['success' => false, 'message' => 'Fichier trop grop', 'code' => CodeDeRetourApi::NoContent->value];
+                http_response_code(CodeDeRetourApi::NoContent->value);
+                exit;
             }
 
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             if (! \in_array($extension, $allowedExtensions)) {
 
-                return ['success' => false, 'message' => 'Format non autorisé', 'code' => CodeDeRetourApi::BadRequest->value];
+                http_response_code(CodeDeRetourApi::BadRequest->value);
+                exit;
             }
 
             $check = getimagesize($file['tmp_name']);
             if ($check === false) {
 
-                return ['success' => false, 'message' => "Le fichier n'est pas une image réelle", 'code' => CodeDeRetourApi::Malicious->value];
+                http_response_code(CodeDeRetourApi::Malicious->value);
+                exit;
             }
 
             $newName = uniqid('img_', true).'.'.$extension;
@@ -39,21 +42,24 @@ final class ImageManager
             if (move_uploaded_file($file['tmp_name'], $targetPath)) {
                 $api->execute([$newName, $id], 'UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)');
 
-                return ['success' => true, 'data' => [], 'code' => CodeDeRetourApi::NoContent->value];
+                http_response_code(CodeDeRetourApi::NoContent->value);
+                exit;
             } else {
 
-                return ['success' => false, 'message' => 'Erreur lors du transfert', 'code' => CodeDeRetourApi::InternalServerError->value];
+                http_response_code(CodeDeRetourApi::InternalServerError->value);
+                exit;
 
             }
         } else {
-            return ['success' => false, 'message' => 'Requete incorrect', 'code' => CodeDeRetourApi::BadRequest->value];
+            http_response_code(CodeDeRetourApi::BadRequest->value);
+            exit;
         }
     }
 
-    public static function GetGroupeImage(string $nom_image): array
+    public static function GetGroupeImage(string $nom_image): void
     {
         try {
-            $baseDir = dirname(__DIR__, 3).'/images';
+            $baseDir = dirname(__DIR__, 1).'/images';
             $fileName = file_exists("$baseDir/$nom_image") ? "$baseDir/$nom_image" : "$baseDir/defaultgroupe.png.jpeg";
             $filePath = $fileName;
             $mimeType = mime_content_type($filePath);
@@ -67,11 +73,12 @@ final class ImageManager
 
             readfile($filePath);
 
-            return ['success' => true, 'data' => [], 'code' => CodeDeRetourApi::OK->value];
+            exit;
 
         } catch (Exception $e) {
 
-            return ['error' => $e->getMessage(), 'code' => CodeDeRetourApi::InternalServerError->value];
+            http_response_code(CodeDeRetourApi::InternalServerError->value);
+            exit;
         }
     }
 }

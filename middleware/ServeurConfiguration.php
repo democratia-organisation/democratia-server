@@ -3,8 +3,7 @@
 namespace Koyok\democratia\middleware;
 
 use Exception;
-
-\CodeDeRetourApi;
+use Koyok\democratia\lib\CodeDeRetourApi;
 use Symfony\Component\Dotenv\Dotenv;
 
 final class ServeurConfiguration
