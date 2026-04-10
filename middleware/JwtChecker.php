@@ -89,14 +89,14 @@ final class JwtChecker
             'aud' => $this->client,
             'sub' => $email,
             'iat' => $now,
-            'exp' => $now + $this->KEY_TIME,
+            'exp' => $now + JwtChecker::$KEY_TIME,
         ]);
         $payloadRefresh = json_encode([
             'iss' => $this->uri,
             'aud' => $this->client,
             'sub' => $email,
             'iat' => $now,
-            'exp' => $now + $this->REFRESH_TIME,
+            'exp' => $now + JwtChecker::$REFRESH_TIME,
         ]);
         $jws = $jwsBuilder
             ->create()
@@ -110,9 +110,8 @@ final class JwtChecker
             ->build();
         $tokenAccess = $this->jwtSerializer->serialize($jws);
         $tokenRefresh = $this->jwtSerializer->serialize($jwsRefresh);
-        http_response_code(CodeDeRetourApi::OK->value);
 
-        return ['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh]];
+        return ['data' => ['API_KEY' => $tokenAccess, 'REFRESH' => $tokenRefresh], 'code' => CodeDeRetourApi::OK->value];
     }
 
     /**

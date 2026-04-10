@@ -18,23 +18,19 @@ final class ImageManager
             $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
             if ($_FILES['image']['size'] > $maxFileSize) {
-                http_response_code(CodeDeRetourApi::NoContent->value);
-
-                return ['success' => false, 'message' => 'Fichier trop grop', 'status' => CodeDeRetourApi::NoContent->value];
+                return ['success' => false, 'message' => 'Fichier trop grop', 'code' => CodeDeRetourApi::NoContent->value];
             }
 
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             if (! \in_array($extension, $allowedExtensions)) {
-                http_response_code(CodeDeRetourApi::BadRequest->value);
 
-                return ['success' => false, 'message' => 'Format non autorisé', 'status' => CodeDeRetourApi::BadRequest->value];
+                return ['success' => false, 'message' => 'Format non autorisé', 'code' => CodeDeRetourApi::BadRequest->value];
             }
 
             $check = getimagesize($file['tmp_name']);
             if ($check === false) {
-                http_response_code(CodeDeRetourApi::Malicious->value);
 
-                return ['success' => false, 'message' => "Le fichier n'est pas une image réelle", 'status' => CodeDeRetourApi::Malicious->value];
+                return ['success' => false, 'message' => "Le fichier n'est pas une image réelle", 'code' => CodeDeRetourApi::Malicious->value];
             }
 
             $newName = uniqid('img_', true).'.'.$extension;
@@ -42,17 +38,15 @@ final class ImageManager
 
             if (move_uploaded_file($file['tmp_name'], $targetPath)) {
                 $api->execute([$newName, $id], 'UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)');
-                http_response_code(CodeDeRetourApi::OK->value);
 
-                return ['success' => true, 'data' => [], 'status' => CodeDeRetourApi::OK->value];
+                return ['success' => true, 'data' => [], 'code' => CodeDeRetourApi::NoContent->value];
             } else {
-                http_response_code(CodeDeRetourApi::InternalServerError->value);
 
-                return ['success' => false, 'message' => 'Erreur lors du transfert', 'status' => CodeDeRetourApi::InternalServerError->value];
+                return ['success' => false, 'message' => 'Erreur lors du transfert', 'code' => CodeDeRetourApi::InternalServerError->value];
 
             }
         } else {
-            return ['success' => false, 'message' => 'Requete incorrect', 'status' => CodeDeRetourApi::BadRequest->value];
+            return ['success' => false, 'message' => 'Requete incorrect', 'code' => CodeDeRetourApi::BadRequest->value];
         }
     }
 
@@ -73,12 +67,11 @@ final class ImageManager
 
             readfile($filePath);
 
-            return ['success' => true, 'data' => [], 'status' => CodeDeRetourApi::OK->value];
+            return ['success' => true, 'data' => [], 'code' => CodeDeRetourApi::OK->value];
 
         } catch (Exception $e) {
-            http_response_code(CodeDeRetourApi::InternalServerError->value);
 
-            return ['error' => $e->getMessage()];
+            return ['error' => $e->getMessage(), 'code' => CodeDeRetourApi::InternalServerError->value];
         }
     }
 }
