@@ -4,7 +4,8 @@ namespace Koyok\democratia\middleware;
 
 use EvTimer;
 use Exception;
-use Koyok\democratia\domain\utils\CodeDeRetourApi;
+
+\CodeDeRetourApi;
 
 final class CleaningBucket
 {

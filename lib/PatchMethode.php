@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\domain\utils;
+namespace Koyok\democratia\lib;
 
 /**
  * Méthodes PATCH : Procédures de mise à jour (UPDATE)

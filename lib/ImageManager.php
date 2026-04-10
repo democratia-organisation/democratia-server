@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\domain\utils;
+namespace Koyok\democratia\lib;
 
 use Exception;
 use Koyok\democratia\data\query\Api;

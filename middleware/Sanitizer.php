@@ -2,7 +2,7 @@
 
 namespace Koyok\democratia\middleware;
 
-use Koyok\democratia\domain\utils;
+use Koyok\democratia\lib;
 
 final class Sanitizer
 {
@@ -17,7 +17,7 @@ final class Sanitizer
             if ($_SERVER['REQUEST_URI'] == '/dashboard') {
                 $requete = 'dashboard';
             } else {
-                $error = ['success' => false, 'message' => 'no parameters', 'code' => utils\CodeDeRetourApi::BadRequest->value];
+                $error = ['success' => false, 'message' => 'no parameters', 'code' => lib\CodeDeRetourApi::BadRequest->value];
             }
         } else {
             while (strpos($requeteRaw, '%') !== false) {

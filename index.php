@@ -6,8 +6,6 @@ use DateTime;
 use Exception;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\domain\Extension;
-use Koyok\democratia\domain\utils;
-use Koyok\democratia\domain\utils\CodeDeRetourApi;
 use Throwable;
 
 require_once './vendor/autoload.php';
@@ -28,22 +26,22 @@ $api = new Api;
 switch ($requestMethod) {
     case 'GET':
         $test = '/SELECT/i';
-        $methodeToCheck = utils\GetMethode::class;
+        $methodeToCheck = lib\GetMethode::class;
         break;
     case 'POST':
         $test = '/INSERT/i';
-        $methodeToCheck = utils\PostMethode::class;
+        $methodeToCheck = lib\PostMethode::class;
         break;
     case 'PATCH':
         $test = '/UPDATE/i';
-        $methodeToCheck = utils\PatchMethode::class;
+        $methodeToCheck = lib\PatchMethode::class;
         break;
     case 'DELETE':
         $test = '/DELETE/i';
-        $methodeToCheck = utils\DeleteMethode::class;
+        $methodeToCheck = lib\DeleteMethode::class;
         break;
     default:
-        throw new Exception("Méthode non prise en compte par l'api", CodeDeRetourApi::BadRequest->value);
+        throw new Exception("Méthode non prise en compte par l'api", lib\CodeDeRetourApi::BadRequest->value);
 }
 
 try {
@@ -56,11 +54,11 @@ try {
             if ($isInDeveloppment || $isInProduction) {
                 middleware\ServeurConfiguration::Dashboard($isInDeveloppment, $isInProduction);
             } else {
-                throw new Exception('Aucun acces', CodeDeRetourApi::Malicious->value);
+                throw new Exception('Aucun acces', lib\CodeDeRetourApi::Malicious->value);
             }
             exit;
         } else {
-            throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
+            throw new Exception('Entête incorrect', lib\CodeDeRetourApi::Unauthorized->value);
         }
     }
 
@@ -83,23 +81,23 @@ try {
         if ($nombreBille >= middleware\Bucket::$MAXIMUM_BILLES_USER) {
             header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + middleware\Bucket::$tempNettoyage);
             header('Retry-After: 60');
-            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
+            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", lib\CodeDeRetourApi::RateLimit->value);
         } else {
             $bucket->addRequest();
             header('X-RateLimit-Limit: '.middleware\Bucket::$MAXIMUM_BILLES_USER);
             header('X-RateLimit-Remaining: '.middleware\Bucket::$MAXIMUM_BILLES_USER - $bucket->nombreBilles);
         }
     } elseif (! middleware\Bucket::serialiser($account)) {
-        throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
+        throw new Exception('Error Processing Request', lib\CodeDeRetourApi::InternalServerError->value);
     }
 
     middleware\RequestVerificator::verificationValeurDonne($requete);
     switch ($requete) {
         case 'obtenirImage':
-            $retour = utils\ImageManager::GetGroupeImage($parameters[0]);
+            $retour = lib\ImageManager::GetGroupeImage($parameters[0]);
             break;
         case 'publierImage':
-            $retour = utils\ImageManager::UploadGroupeImage($parameters[0]);
+            $retour = lib\ImageManager::UploadGroupeImage($parameters[0]);
             break;
         default:
             middleware\RequestVerificator::verificationFormatage($parameters, $requete);
@@ -116,7 +114,7 @@ try {
         'success' => false,
         'message' => 'Une erreur inattendu est survenu',
     ];
-    if ($e->getCode() == CodeDeRetourApi::Malicious->value && $isInProduction) {
+    if ($e->getCode() == lib\CodeDeRetourApi::Malicious->value && $isInProduction) {
         header('Location: https://www.youtube.com/watch?v=dQw4w9WgXcQ');
         exit;
     }
@@ -132,11 +130,11 @@ try {
 }
 if (empty($retour['data']) && $retour['success'] === true) {
     $retour['message'] = 'Connexion réussie mais aucun résultat trouvé pour cette requête.';
-    $retour['code'] = CodeDeRetourApi::NoContent->value;
+    $retour['code'] = lib\CodeDeRetourApi::NoContent->value;
 }
 a:
 if (empty($reponse['code'])) {
-    $reponse['code'] = CodeDeRetourApi::OK->value;
+    $reponse['code'] = lib\CodeDeRetourApi::OK->value;
 }
 middleware\Sanitizer::PostSanitize($retour);
 http_response_code($reponse['code']);

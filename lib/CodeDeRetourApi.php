@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\domain\utils;
+namespace Koyok\democratia\lib;
 
 /**
  * Enumération des codes de retour HTTP standard pour l'API.

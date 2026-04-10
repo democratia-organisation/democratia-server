@@ -26,7 +26,8 @@
       "Koyok\\democratia\\domain\\" : "./src/domain",
       "Koyok\\democratia\\data\\" : "./src/data",
       "Koyok\\democratia\\routes\\" : "./routes",
-      "Koyok\\democratia\\middleware\\" : "./middleware"
+      "Koyok\\democratia\\middleware\\" : "./middleware",
+      "Koyok\\democratia\\lib\\" : "./lib"
     }
   }
 }

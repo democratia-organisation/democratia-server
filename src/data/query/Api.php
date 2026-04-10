@@ -4,7 +4,7 @@ namespace Koyok\democratia\data\query;
 
 use Exception;
 use Koyok\democratia\data\config\Connexion;
-use Koyok\democratia\domain\utils;
+use Koyok\democratia\lib;
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -18,7 +18,7 @@ use RuntimeException;
  */
 class Api
 {
-    private utils\CodeDeRetourApi $retourApi;
+    private lib\CodeDeRetourApi $retourApi;
 
     private int $codeDeRetourApi;
 
@@ -32,7 +32,7 @@ class Api
 
     public function __construct()
     {
-        $this->retourApi = utils\CodeDeRetourApi::OK;
+        $this->retourApi = lib\CodeDeRetourApi::OK;
         $this->codeDeRetourApi = $this->retourApi->value;
         $this->messageDeRetour = 'Aucune action effectuee';
         $this->valeurRetourne = null;
@@ -47,10 +47,10 @@ class Api
     public function getAvailableMethods(): array
     {
         return [
-            'POST' => $this->formatMethods(utils\PostMethode::cases()),
-            'GET' => $this->formatMethods(utils\GetMethode::cases()),
-            'PATCH' => $this->formatMethods(utils\PatchMethode::cases()),
-            'DELETE' => $this->formatMethods(utils\DeleteMethode::cases()),
+            'POST' => $this->formatMethods(lib\PostMethode::cases()),
+            'GET' => $this->formatMethods(lib\GetMethode::cases()),
+            'PATCH' => $this->formatMethods(lib\PatchMethode::cases()),
+            'DELETE' => $this->formatMethods(lib\DeleteMethode::cases()),
         ];
     }
 
@@ -63,7 +63,7 @@ class Api
     {
         $pdo = $this->connexionBaseDeDonne();
         $this->valeurRetourne = $this->executeRequete($pdo, $requete, $parameters);
-        if ($this->codeDeRetourApi == utils\CodeDeRetourApi::OK->value) {
+        if ($this->codeDeRetourApi == lib\CodeDeRetourApi::OK->value) {
             $this->messageDeRetour = 'Ressource obtenu avec success';
         }
 
@@ -151,7 +151,7 @@ class Api
         string $messageDeRetour): void
     {
         $this->messageDeRetour = $messageDeRetour;
-        $this->retourApi = utils\CodeDeRetourApi::tryFrom($codeDerreur);
+        $this->retourApi = lib\CodeDeRetourApi::tryFrom($codeDerreur);
         $this->codeDeRetourApi = $codeDerreur;
         if ($this->retourApi != null) {
             $this->codeDeRetourApi = $this->retourApi->value;
