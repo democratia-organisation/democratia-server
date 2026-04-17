@@ -6,6 +6,7 @@ use DateTime;
 use Exception;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\domain\Extension;
+use Koyok\democratia\middleware\OutputFormat;
 use Throwable;
 
 require_once './vendor/autoload.php';
@@ -56,7 +57,6 @@ try {
             } else {
                 throw new Exception('Aucun acces', lib\CodeDeRetourApi::Malicious->value);
             }
-            exit;
         } else {
             throw new Exception('Entête incorrect', lib\CodeDeRetourApi::Unauthorized->value);
         }
@@ -93,12 +93,11 @@ try {
 
     middleware\RequestVerificator::verificationValeurDonne($requete);
     switch ($requete) {
+        // pas de break car les deux fonction exit le programme d'elles mêmes
         case 'obtenirImage':
             lib\ImageManager::GetGroupeImage($parameters[0]);
-            // pas de break car les deux fonction exit le programme d'elles mêmes
         case 'publierImage':
             lib\ImageManager::UploadGroupeImage($parameters[0]);
-
         default:
             middleware\RequestVerificator::verificationFormatage($parameters, $requete);
             middleware\RequestVerificator::verificationBonneAction($requete, $test);
@@ -109,34 +108,9 @@ try {
     }
 
 } catch (Throwable $e) {
-    http_response_code($e->getCode());
-    $reponse = [
-        'success' => false,
-        'message' => 'Une erreur inattendu est survenu',
-    ];
-    if ($e->getCode() == lib\CodeDeRetourApi::Malicious->value && $isInProduction) {
-        header('Location: https://www.youtube.com/watch?v=dQw4w9WgXcQ');
-        exit;
-    }
-    if ($isInDeveloppment) {
-        $reponse['file'] = $e->getFile();
-        $reponse['line'] = $e->getLine();
-        $reponse['error_type'] = $e->getMessage();
-        $reponse['message'] = $e->getMessage();
-        $reponse['stackTrace'] = $e->getTraceAsString();
-    }
-    echo json_encode($reponse, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+    OutputFormat::ErrorFormating($e, $isInProduction, $isInDeveloppment);
     exit;
 }
-if (empty($retour['data']) && $retour['success'] === true) {
-    $retour['message'] = 'Connexion réussie mais aucun résultat trouvé pour cette requête.';
-    $retour['code'] = lib\CodeDeRetourApi::NoContent->value;
-}
 a:
-if (empty($reponse['code'])) {
-    $reponse['code'] = lib\CodeDeRetourApi::OK->value;
-}
-middleware\Sanitizer::PostSanitize($retour);
-http_response_code($reponse['code']);
-echo json_encode($retour, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+OutputFormat::OutputFormating($retour);
 exit;
