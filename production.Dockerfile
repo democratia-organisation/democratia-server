@@ -25,7 +25,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 RUN chown -R www-data:www-data /var/www/html
-RUN echo "FallbackResource /rest.php" > .htaccess
+RUN echo "FallbackResource /index.php" > .htaccess
 
 COPY composer.* .
 RUN composer install --no-dev --optimize-autoloader --no-interaction

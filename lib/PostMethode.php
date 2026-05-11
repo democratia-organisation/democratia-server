@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\src;
+namespace Koyok\democratia\lib;
 
 /**
  * Méthodes POST : Procédures de création (INSERT)

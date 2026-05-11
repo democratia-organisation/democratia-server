@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\config;
+namespace Koyok\democratia\data\config;
 
 use PDO;
 use Pdo\Mysql;

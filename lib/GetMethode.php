@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\src;
+namespace Koyok\democratia\lib;
 
 /**
  * Méthodes GET : Fonctions de récupération (SELECT)

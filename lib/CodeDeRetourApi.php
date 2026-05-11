@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\src;
+namespace Koyok\democratia\lib;
 
 /**
  * Enumération des codes de retour HTTP standard pour l'API.
@@ -31,6 +31,11 @@ enum CodeDeRetourApi: int
      * 204 No Content : La requête a réussi mais il n'y a pas de contenu à renvoyer.
      */
     case NoContent = 204;
+
+    /**
+     * 301 Redirected : La rêquete a été redirigé
+     */
+    case Redirected = 301;
 
     /**
      * 400 Bad Request : La requête est mal formée.

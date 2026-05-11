@@ -1,6 +1,6 @@
 <?php
 
-namespace Koyok\democratia\Extension;
+namespace Koyok\democratia\domain\Extension;
 
 use DateInterval;
 use DateTimeImmutable;
