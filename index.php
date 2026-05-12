@@ -8,6 +8,7 @@ use Koyok\democratia\data\query\Api;
 use Koyok\democratia\domain\Extension;
 use Koyok\democratia\lib\DeleteMethode;
 use Koyok\democratia\lib\GetMethode;
+use Koyok\democratia\lib\ImageManager;
 use Koyok\democratia\lib\PatchMethode;
 use Koyok\democratia\lib\PostMethode;
 use Koyok\democratia\middleware\Bucket;
@@ -107,9 +108,9 @@ try {
     switch ($requete) {
         // pas de break car les deux fonction exit le programme d'elles mêmes
         case 'obtenirImage':
-            lib\ImageManager::GetGroupeImage($parameters[0]);
+            ImageManager::GetGroupeImage($parameters[0]);
         case 'publierImage':
-            lib\ImageManager::UploadGroupeImage($parameters[0]);
+            ImageManager::UploadGroupeImage($parameters[0]);
         default:
             RequestVerificator::verificationFormatage($parameters, $requete);
             RequestVerificator::verificationBonneAction($requete, $test);
