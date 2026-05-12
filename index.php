@@ -30,7 +30,10 @@ header('Content-Type: application/json');
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $path = $_SERVER['QUERY_STRING'];
 [$uri,$client, $isInDeveloppment, $isInProduction] = ServeurConfiguration::Configure();
-Router::Routing($path, $requestMethod);
+$router = new Router;
+$router->Routing($path, $requestMethod);
+$_GET['request'] = $router->request;
+$_GET['parameters'] = $router->parameters;
 [$requete, $parameters, $error] = Sanitizer::Sanitize();
 
 $test = '';

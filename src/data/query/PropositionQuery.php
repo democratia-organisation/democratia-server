@@ -10,7 +10,9 @@ final class PropositionQuery implements IQuery
     {
         $this->queries = [
             'GET' => [
-                ':id_groupe' => ['', '', 'SELECT BIN_TO_UUID(id_groupe) AS id_groupe,id_proposition
+                ':id_groupe' => [
+                    'type' => 'string',
+                    '' => ['', '', 'SELECT BIN_TO_UUID(id_groupe) AS id_groupe,id_proposition
                             budget,
                             date_publication,
                             description_proposition,
@@ -20,7 +22,8 @@ final class PropositionQuery implements IQuery
                             titre_proposition
                         FROM proposition
                         WHERE id_groupe = UUID_TO_BIN(?)
-                        '],
+                    '],
+                ],
             ],
             'POST' => [
             ],

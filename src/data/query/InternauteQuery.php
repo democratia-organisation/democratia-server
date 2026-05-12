@@ -18,9 +18,15 @@ final class InternauteQuery implements IQuery
     {
         $this->queries = [
             'GET' => [
-                ':id_internuate' => ['', '', 'SELECT * FROM internaute WHERE id_internaute=?'],
-                ':id_internaute/groupes' => ['', '', 'SELECT BIN_TO_UUID(g.id_groupe) AS id_groupe, nom_groupe, budget, couleur_groupe, image, nb_signalement, nbj_dft_discuss, nbj_dft_vote FROM groupe g INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE id_internaute=?'],
-                ':courriel/doublon' => ['', '', 'SELECT COUNT(courriel) FROM internaute WHERE courriel=?'],
+                ':id_internuate' => [
+                    'type' => 'int',
+                    '' => ['', '', 'SELECT * FROM internaute WHERE id_internaute=?'],
+                    'groupes' => ['', '', 'SELECT BIN_TO_UUID(g.id_groupe) AS id_groupe, nom_groupe, budget, couleur_groupe, image, nb_signalement, nbj_dft_discuss, nbj_dft_vote FROM groupe g INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE id_internaute=?'],
+                ],
+                ':courriel' => [
+                    'type' => 'string',
+                    'doublon' => ['', '', 'SELECT COUNT(courriel) FROM internaute WHERE courriel=?'],
+                ],
             ],
             'POST' => [
                 '' => ['', $_POST['0'], 'CreerUtilisateur'],
@@ -29,7 +35,10 @@ final class InternauteQuery implements IQuery
                 '' => ['', '', 'ModifInfoInternaute'],
             ],
             'DELETE' => [
-                ':id_internaute' => ['', '', 'SupprimerInternaute'],
+                ':id_internaute' => [
+                    'type' => 'int',
+                    '' => ['', '', 'SupprimerInternaute'],
+                ],
             ],
         ];
     }
