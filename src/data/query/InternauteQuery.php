@@ -1,20 +1,41 @@
 <?php
 
+namespace Koyok\democratia\data\query;
+
 // TODO : pour implémenter le query route
 /**
  * [<queryPart>] => [
- * "<Method>" => [{"{:}<paremtre>"}, {parametersArray}, "<sql request>", ]
+ * "<Method>" => [
+ * "{{:}<path>}"  => [{namedParameters}, {dataParameters}  ,"<sql request>", ]
  * ]
- *
- * exemple :
- * http://localhost/user/500 Method: GET
- * on utilise $queryTable["user"]["GET"] qui contient : [500, "SELECT * FROM internaute WHERE id_internaute=?"]
- *
- * http://localhost/groupes Method: GET
- * on utilise $queryTable["groupes"]["GET"] qui contient : ["SELECT * FROM groupe"]
- * * http://localhost/users Method: GET
- * on utilise $queryTable["users"]["GET"] qui contient : [parameters, "SELECT * FROM internaute LIMIT ?*?"]
+ * ]
  */
-$array = [
+final class InternauteQuery implements IQuery
+{
+    public array $queries;
 
-];
+    public function __construct()
+    {
+        $this->queries = [
+            'GET' => [
+                ':id_internuate' => ['', '', 'SELECT * FROM internaute WHERE id_internaute=?'],
+                ':id_internaute/groupes' => ['', '', 'SELECT BIN_TO_UUID(g.id_groupe) AS id_groupe, nom_groupe, budget, couleur_groupe, image, nb_signalement, nbj_dft_discuss, nbj_dft_vote FROM groupe g INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE id_internaute=?'],
+                ':courriel/doublon' => ['', '', 'SELECT COUNT(courriel) FROM internaute WHERE courriel=?'],
+            ],
+            'POST' => [
+                '' => ['', $_POST['0'], 'CreerUtilisateur'],
+            ],
+            'PATCH' => [
+                '' => ['', '', 'ModifInfoInternaute'],
+            ],
+            'DELETE' => [
+                ':id_internaute' => ['', '', 'SupprimerInternaute'],
+            ],
+        ];
+    }
+
+    public function getQueries(): array
+    {
+        return $this->queries;
+    }
+}
