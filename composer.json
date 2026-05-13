@@ -17,7 +17,8 @@
   "require-dev": {
     "jetbrains/phpstorm-stubs": "dev-master",
     "laravel/pint": "^1.29",
-    "pestphp/pest": "^4.4"
+    "pestphp/pest": "^4.7",
+    "guzzlehttp/guzzle": "^7.10"
   },
   "autoload-dev": {
     "psr-4": {
