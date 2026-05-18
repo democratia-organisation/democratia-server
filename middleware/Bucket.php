@@ -116,6 +116,11 @@ final class Bucket
         return $this->nombreBilles;
     }
 
+    public function getUserLimit(): bool
+    {
+        return $this->nombreBilles >= Bucket::$MAXIMUM_BILLES_USER;
+    }
+
     public function NettoyerBucket(): bool
     {
         $isDeserialize = true;

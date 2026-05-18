@@ -74,7 +74,7 @@ final class Router
         $filterParam = $tab[$arrayPath[\count($arrayPath) - 1]];
         $arrayParam = [];
         foreach ($filterParam as $indice => $param) {
-            if ($param !== '' && $indice !== (\count($tab))) {
+            if ($param !== '' && $indice !== (\count($filterParam) - 1)) {
                 array_push($arrayParam, $param);
             }
         }

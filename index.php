@@ -68,38 +68,37 @@ try {
     }
 
     $header = getallheaders();
+    $jwtChecker = new JwtChecker($uri, $client);
     if (! empty($error)) {
         throw new Exception($error['message'], $error['code']);
     }
-    if (empty($header['Authorization']) && $requete != 'login') {
+    if (empty($header['Authorization'])) {
         if ($requete == 'dashboard') {
             if ($isInDeveloppment || $isInProduction) {
                 ServeurConfiguration::Dashboard($isInDeveloppment, $isInProduction);
             } else {
                 throw new Exception('Aucun acces', CodeDeRetourApi::Malicious->value);
             }
+        } elseif ($requete == 'refresh' && $requestMethod == 'POST') {
+            $retour = $jwtChecker->GenerateKey($parameters[0]);
+            goto a;
         } else {
             throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
         }
-    }
-
-    $jwtChecker = new JwtChecker($uri, $client);
-    if ($requete == 'login' && $requestMethod == 'GET') {
-        $retour = $jwtChecker->GenerateKey($parameters[0]);
-        goto a;
-    } elseif (($requete == 'relogin' || $requete == 'SELECT * FROM internaute WHERE courriel=?') && $requestMethod == 'GET') {
-        $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
-        $jwtChecker->CheckJWT($header);
     } else {
+        if (($requete == 'SELECT * FROM internaute WHERE courriel=? AND hashageMDP=?' || $requete === 'refresh') && $requestMethod == 'POST') {
+            $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
+            $test = '/SELECT/i';
+        }
         $jwtChecker->CheckJWT($header);
     }
 
     $account = $jwtChecker->GetPayload()['sub'];
-
     $bucket = Bucket::deserialiser($account);
+
     if (Bucket::hasABucket($account)) {
         $nombreBille = Bucket::getRatio($account);
-        if ($nombreBille >= Bucket::$MAXIMUM_BILLES_USER) {
+        if ($bucket->getUserLimit()) {
             header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + Bucket::$tempNettoyage);
             header('Retry-After: 60');
             throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
