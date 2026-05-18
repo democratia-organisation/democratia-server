@@ -27,41 +27,45 @@ header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Content-Type: application/json');
 
-$requestMethod = $_SERVER['REQUEST_METHOD'];
-$path = $_SERVER['QUERY_STRING'];
-[$uri,$client, $isInDeveloppment, $isInProduction] = ServeurConfiguration::Configure();
-$router = new Router;
-$router->Routing($path, $requestMethod);
-$_GET['request'] = $router->request;
-$_GET['parameters'] = $router->parameters;
-[$requete, $parameters, $error] = Sanitizer::Sanitize();
-
-$test = '';
-$methodeToCheck = '';
-$api = new Api;
-
-switch ($requestMethod) {
-    case 'GET':
-        $test = '/SELECT/i';
-        $methodeToCheck = GetMethode::class;
-        break;
-    case 'POST':
-        $test = '/INSERT/i';
-        $methodeToCheck = PostMethode::class;
-        break;
-    case 'PATCH':
-        $test = '/UPDATE/i';
-        $methodeToCheck = PatchMethode::class;
-        break;
-    case 'DELETE':
-        $test = '/DELETE/i';
-        $methodeToCheck = DeleteMethode::class;
-        break;
-    default:
-        throw new Exception("Méthode non prise en compte par l'api", lib\CodeDeRetourApi::BadRequest->value);
-}
-
 try {
+    $requestMethod = $_SERVER['REQUEST_METHOD'];
+    if ($requestMethod === 'POST' || $requestMethod == 'PATCH') {
+        $jsonRaw = file_get_contents('php://input');
+        $data = json_decode($jsonRaw, true);
+    }
+    $path = $_SERVER['PATH_INFO'];
+    [$uri,$client, $isInDeveloppment, $isInProduction] = ServeurConfiguration::Configure();
+    $router = new Router($data);
+    $router->Routing($path, $requestMethod);
+    $_GET['request'] = $router->request;
+    $_GET['parameters'] = $router->parameters;
+    [$requete, $parameters, $error] = Sanitizer::Sanitize();
+
+    $test = '';
+    $methodeToCheck = '';
+    $api = new Api;
+
+    switch ($requestMethod) {
+        case 'GET':
+            $test = '/SELECT/i';
+            $methodeToCheck = GetMethode::class;
+            break;
+        case 'POST':
+            $test = '/INSERT/i';
+            $methodeToCheck = PostMethode::class;
+            break;
+        case 'PATCH':
+            $test = '/UPDATE/i';
+            $methodeToCheck = PatchMethode::class;
+            break;
+        case 'DELETE':
+            $test = '/DELETE/i';
+            $methodeToCheck = DeleteMethode::class;
+            break;
+        default:
+            throw new Exception("Méthode non prise en compte par l'api", lib\CodeDeRetourApi::BadRequest->value);
+    }
+
     $header = getallheaders();
     if (! empty($error)) {
         throw new Exception($error['message'], $error['code']);

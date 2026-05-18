@@ -2,37 +2,45 @@
 
 namespace Koyok\democratia\routes;
 
-use Exception;
 use Koyok\democratia\data\query\GroupeQuery;
 use Koyok\democratia\data\query\InternauteQuery;
 use Koyok\democratia\data\query\PropositionQuery;
 use Koyok\democratia\data\query\ThematiqueQuery;
-use Koyok\democratia\lib\CodeDeRetourApi;
 
 final class Router
 {
-    public static array $queries = [
-        'users' => new InternauteQuery,
-        'groupes' => new GroupeQuery,
-        'propositions' => new PropositionQuery,
-        'thematiques' => new ThematiqueQuery,
-    ];
+    public array $queries;
 
-    public array $parameters;
+    public string $parameters;
 
     public string $request;
+
+    private ?array $requestParameters;
+
+    public function __construct(?array $requestParameters = null)
+    {
+        $this->queries = [
+            'users' => new InternauteQuery,
+            'groupes' => new GroupeQuery,
+            'propositions' => new PropositionQuery,
+            'thematiques' => new ThematiqueQuery,
+        ];
+        $this->parameters = '';
+        $this->request = '';
+        $this->requestParameters = $requestParameters;
+    }
 
     public function Routing(string $path, string $requestMethod): void
     {
         $requests = explode('/', $path);
-        foreach (Router::$queries as $key => $value) {
-            Router::$queries[$key] = $value->getQueries();
+        foreach ($this->queries as $key => $value) {
+            $this->queries[$key] = $value->getQueries();
         }
-        $tab = Router::$queries[$requests[0]][$requestMethod];
+        $tab = $this->queries[$requests[1]][$requestMethod];
         if (empty($tab)) {
             return;
         } else {
-            $this->ParameterWalking($tab, $requests, 0);
+            $this->ParameterWalking($tab, $requests, 1);
         }
     }
 
@@ -57,16 +65,25 @@ final class Router
                         continue;
                     }
                 } else {
-                    $filterParam = array_filter($value, fn ($key) => $key != 2, ARRAY_FILTER_USE_KEY);
-                    foreach ($filterParam as $indice => $param) {
-                        array_push($this->parameters, $param);
-                    }
-                    $this->request = $value[2];
-
-                    return;
+                    break;
                 }
+            } else {
+                break;
             }
         }
-        throw new Exception('Chemin inexstant', CodeDeRetourApi::BadRequest->value);
+        $filterParam = $tab[$arrayPath[\count($arrayPath) - 1]];
+        $arrayParam = [];
+        foreach ($filterParam as $indice => $param) {
+            if ($param !== '' && $indice !== (\count($tab))) {
+                array_push($arrayParam, $param);
+            }
+        }
+        if ($this->requestParameters !== null) {
+            foreach ($this->requestParameters as $key => $value) {
+                array_push($arrayParam, $value);
+            }
+        }
+        $this->parameters = json_encode($arrayParam);
+        $this->request = $filterParam[2];
     }
 }

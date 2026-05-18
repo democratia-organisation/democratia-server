@@ -29,7 +29,9 @@ final class InternauteQuery implements IQuery
                 ],
             ],
             'POST' => [
-                '' => ['', $_POST['0'], 'CreerUtilisateur'],
+                '' => ['', '', 'CreerUtilisateur'],
+                'login' => ['', '', 'SELECT * FROM internaute WHERE courriel=? AND hashageMDP=?'],
+                'relogin' => ['', '', ''],
             ],
             'PATCH' => [
                 '' => ['', '', 'ModifInfoInternaute'],
