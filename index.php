@@ -6,6 +6,7 @@ use DateTime;
 use Exception;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\domain\Extension;
+use Koyok\democratia\lib\CodeDeRetourApi;
 use Koyok\democratia\lib\DeleteMethode;
 use Koyok\democratia\lib\GetMethode;
 use Koyok\democratia\lib\ImageManager;
@@ -63,7 +64,7 @@ try {
             $methodeToCheck = DeleteMethode::class;
             break;
         default:
-            throw new Exception("Méthode non prise en compte par l'api", lib\CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Méthode non prise en compte par l'api", CodeDeRetourApi::BadRequest->value);
     }
 
     $header = getallheaders();
@@ -75,10 +76,10 @@ try {
             if ($isInDeveloppment || $isInProduction) {
                 ServeurConfiguration::Dashboard($isInDeveloppment, $isInProduction);
             } else {
-                throw new Exception('Aucun acces', lib\CodeDeRetourApi::Malicious->value);
+                throw new Exception('Aucun acces', CodeDeRetourApi::Malicious->value);
             }
         } else {
-            throw new Exception('Entête incorrect', lib\CodeDeRetourApi::Unauthorized->value);
+            throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
         }
     }
 
@@ -101,14 +102,14 @@ try {
         if ($nombreBille >= Bucket::$MAXIMUM_BILLES_USER) {
             header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + Bucket::$tempNettoyage);
             header('Retry-After: 60');
-            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", lib\CodeDeRetourApi::RateLimit->value);
+            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
         } else {
             $bucket->addRequest();
             header('X-RateLimit-Limit: '.Bucket::$MAXIMUM_BILLES_USER);
             header('X-RateLimit-Remaining: '.Bucket::$MAXIMUM_BILLES_USER - $bucket->nombreBilles);
         }
     } elseif (! Bucket::serialiser($account)) {
-        throw new Exception('Error Processing Request', lib\CodeDeRetourApi::InternalServerError->value);
+        throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
     }
 
     RequestVerificator::verificationValeurDonne($requete);
