@@ -2,10 +2,12 @@
 
 namespace Koyok\democratia\routes;
 
+use Exception;
 use Koyok\democratia\data\query\GroupeQuery;
 use Koyok\democratia\data\query\InternauteQuery;
 use Koyok\democratia\data\query\PropositionQuery;
 use Koyok\democratia\data\query\ThematiqueQuery;
+use Koyok\democratia\lib\CodeDeRetourApi;
 
 final class Router
 {
@@ -48,21 +50,10 @@ final class Router
     {
         foreach ($tab as $key => $value) {
             if (\is_array($value)) {
-                if (! empty($value['type'])) {
-                    $filterTab = array_filter($value, fn ($clé) => $clé != 'type', ARRAY_FILTER_USE_KEY);
-                    if (\array_key_exists($arrayPath[$index], $filterTab)) {
-                        $filterPathTh = array_filter($arrayPath, fn ($clé) => $clé != 0, ARRAY_FILTER_USE_KEY);
+                if (\count($value) > 1) {
+                    if (\count($value[1]) === 3) {
                         $index += 1;
-                        Router::ParameterWalking($filterTab[$arrayPath[$index]], $filterPathTh, $index);
-
-                        return;
-                    } elseif (str_contains($key, ':')) {
-                        array_push($this->parameters, $arrayPath[$index]);
-                        $index += 1;
-
-                        return;
-                    } else {
-                        continue;
+                        $this->EndWalking($tab[$arrayPath[$index]], $arrayPath);
                     }
                 } else {
                     break;
@@ -71,6 +62,16 @@ final class Router
                 break;
             }
         }
+
+    }
+
+    private function TypeFiltering(string $typeName, mixed $var): bool
+    {
+        return is_a($var, $typeName);
+    }
+
+    private function EndWalking(array $tab, array $arrayPath): void
+    {
         $filterParam = $tab[$arrayPath[\count($arrayPath) - 1]];
         $arrayParam = [];
         foreach ($filterParam as $indice => $param) {
@@ -85,5 +86,28 @@ final class Router
         }
         $this->parameters = json_encode($arrayParam);
         $this->request = $filterParam[2];
+    }
+
+    private function ArrayDescente(array $value, array $arrayPath, int $index, mixed $key): void
+    {
+
+        if ($this->TypeFiltering($value['type'], $arrayPath[\count($arrayPath) - 1])) {
+            throw new Exception('Error Processing Request', CodeDeRetourApi::BadRequest->value);
+        }
+        $index += 1;
+        $filterTab = array_filter($value, fn ($clé) => $clé != 'type', ARRAY_FILTER_USE_KEY);
+        if (\array_key_exists($arrayPath[$index], $filterTab)) {
+            $filterPathTh = array_filter($arrayPath, fn ($clé) => $clé != 0, ARRAY_FILTER_USE_KEY);
+            Router::ParameterWalking($filterTab[$arrayPath[$index]], $filterPathTh, $index);
+
+            return;
+        } elseif (str_contains($key, ':')) {
+            array_push($this->parameters, $arrayPath[$index]);
+            $index += 1;
+
+            return;
+        } else {
+            return;
+        }
     }
 }
