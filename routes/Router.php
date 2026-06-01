@@ -27,6 +27,9 @@ final class Router
             'propositions' => new PropositionQuery,
             'thematiques' => new ThematiqueQuery,
         ];
+        foreach ($this->queries as $key => $value) {
+            $this->queries[$key] = $value->getQueries();
+        }
         $this->parameters = '';
         $this->request = '';
         $this->requestParameters = $requestParameters;
@@ -35,34 +38,38 @@ final class Router
     public function Routing(string $path, string $requestMethod): void
     {
         $requests = explode('/', $path);
-        foreach ($this->queries as $key => $value) {
-            $this->queries[$key] = $value->getQueries();
-        }
         $tab = $this->queries[$requests[1]][$requestMethod];
         if (empty($tab)) {
             return;
         } else {
+            $requests = \array_slice($requests, 1);
             $this->ParameterWalking($tab, $requests, 1);
         }
     }
 
     private function ParameterWalking(array $tab, array $arrayPath, int $index): void
     {
-        foreach ($tab as $key => $value) {
-            if (\is_array($value)) {
-                if (\count($value) > 1) {
-                    if (\count($value[1]) === 3) {
-                        $index += 1;
-                        $this->EndWalking($tab[$arrayPath[$index]], $arrayPath);
-                    }
-                } else {
-                    break;
-                }
+        if (empty($tab[$arrayPath[$index]])) {
+            return;
+        } else {
+            if (\count($tab[$arrayPath[$index]]) === 1) {
+                $this->EndWalking($tab, $arrayPath);
+
+                return;
+            } elseif (\count($tab[$arrayPath[$index]]) === 2) {
+                $index += 1;
+                $this->ParametersDescente($tab, $arrayPath, $index);
+
+                return;
             } else {
-                break;
+                $index += 1;
+                $arrayPath = \array_slice($arrayPath, 1);
+                $tab = $tab[$arrayPath[$index]];
+                $this->ParameterWalking($tab, $arrayPath, $index);
+
+                return;
             }
         }
-
     }
 
     private function TypeFiltering(string $typeName, mixed $var): bool
@@ -88,26 +95,17 @@ final class Router
         $this->request = $filterParam[2];
     }
 
-    private function ArrayDescente(array $value, array $arrayPath, int $index, mixed $key): void
+    private function ParametersDescente(array $value, array $arrayPath, int $index): void
     {
-
-        if ($this->TypeFiltering($value['type'], $arrayPath[\count($arrayPath) - 1])) {
+        $key = array_keys($value)[0];
+        if (! $this->TypeFiltering($value[$key]['type'], $arrayPath[0])) {
             throw new Exception('Error Processing Request', CodeDeRetourApi::BadRequest->value);
-        }
-        $index += 1;
-        $filterTab = array_filter($value, fn ($clé) => $clé != 'type', ARRAY_FILTER_USE_KEY);
-        if (\array_key_exists($arrayPath[$index], $filterTab)) {
-            $filterPathTh = array_filter($arrayPath, fn ($clé) => $clé != 0, ARRAY_FILTER_USE_KEY);
-            Router::ParameterWalking($filterTab[$arrayPath[$index]], $filterPathTh, $index);
-
-            return;
-        } elseif (str_contains($key, ':')) {
-            array_push($this->parameters, $arrayPath[$index]);
-            $index += 1;
-
-            return;
         } else {
+            array_push($this->parameters, $arrayPath[0]);
+            $this->EndWalking($value, $arrayPath);
+
             return;
         }
+
     }
 }
