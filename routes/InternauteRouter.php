@@ -13,11 +13,12 @@ final class InternauteRouter
         Router::SetContainer(InternauteController::class);
         $router->group('/users', function (RouteGroup $route) {
             $route->get('/groupes/{idInternaute:number}', [InternauteController::class, 'GetGroupe']);
-            $route->post('/login', [InternauteController::class, 'GetGroupe']);
-            $route->delete('/{idInternaute:number}', [InternauteController::class, 'GetGroupe']);
-            $route->patch('', [InternauteController::class, 'GetGroupe']);
-            $route->post('', [InternauteController::class, 'GetGroupe']);
-            $route->get('/{email}/doublon', [InternauteController::class, 'GetGroupe']);
+            $route->post('/login', [InternauteController::class, 'Login']);
+            $route->delete('/{idInternaute:number}', [InternauteController::class, 'SupprimerInternaute']);
+            $route->patch('', [InternauteController::class, 'ModifierInternaute']);
+            $route->post('', [InternauteController::class, 'CreerInternaute']);
+            $route->get('/{email}/doublon', [InternauteController::class, 'GetMailDoublon']);
+            $route->get('/{idInternaute}', [InternauteController::class, 'GetInternaute']);
         });
     }
 }

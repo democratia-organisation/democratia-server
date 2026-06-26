@@ -2,27 +2,20 @@
 
 namespace Koyok\democratia\domain\controllers;
 
+use Koyok\democratia\data\query\Api;
+use Psr\Http\Message\ServerRequestInterface;
+
 final class ThematiqueController
 {
-    public array $queries;
+    private Api $api;
 
-    public function __construct()
+    public function __construct(Api $api)
     {
-        $this->queries = [
-            'GET' => [
-                '' => ['', '', 'SELECT * FROM thematique ORDER BY id_thematique'],
-            ],
-            'POST' => [
-            ],
-            'PATCH' => [
-            ],
-            'DELETE' => [
-            ],
-        ];
+        $this->api = $api;
     }
 
-    public function getQueries(): array
+    public function GetAllGroupe(ServerRequestInterface $request): array
     {
-        return $this->queries;
+        return $this->api->execute([], 'SELECT * FROM thematique ORDER BY id_thematique');
     }
 }

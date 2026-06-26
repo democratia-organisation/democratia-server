@@ -4,6 +4,8 @@ namespace Koyok\democratia\domain\controllers;
 
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\lib\DeleteMethode;
+use Koyok\democratia\lib\PatchMethode;
+use Koyok\democratia\lib\PostMethode;
 use Psr\Http\Message\ServerRequestInterface;
 
 // TODO : pour implémenter le query route
@@ -16,9 +18,12 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class InternauteController
 {
-    public array $queries;
-
     private Api $api;
+
+    public function __construct(Api $api)
+    {
+        $this->api = $api;
+    }
 
     public function GetGroupe(ServerRequestInterface $request, array $args): array
     {
@@ -43,42 +48,22 @@ final class InternauteController
         return $this->api->execute([$args['idInternaute']], $requete);
     }
 
-    public function __construct(Api $api)
+    public function GetInternaute(ServerRequestInterface $request, array $args): array
     {
-        $this->api = $api;
-        $this->queries = [
-            'GET' => [
-
-                '' => [
-                    ':id_internuate' => ['type' => 'int'],
-                    ['', '', 'SELECT * FROM internaute WHERE id_internaute=?'],
-                ],
-                'doublon' => [
-                    ':courriel' => ['type' => 'string'],
-                    ['', '', 'SELECT COUNT(courriel) FROM internaute WHERE courriel=?'],
-                ],
-
-            ],
-            'POST' => [
-                '' => ['', '', 'CreerUtilisateur'],
-                'login' => ['', '', 'SELECT * FROM internaute WHERE courriel=? AND hashageMDP=?'],
-                'refresh' => ['', '', 'refresh'],
-            ],
-            'PATCH' => [
-                '' => ['', '', 'ModifInfoInternaute'],
-            ],
-            'DELETE' => [
-                '' => [
-                    ':id_internaute' => ['type' => 'int'],
-                    ['', '', 'SupprimerInternaute'],
-                ],
-
-            ],
-        ];
+        return $this->api->execute([$args['idInternaute']], 'SELECT * FROM internaute WHERE id_internaute=?');
     }
 
-    public function getQueries(): array
+    public function CreerInternaute(ServerRequestInterface $request): array
     {
-        return $this->queries;
+        $requete = $this->api->tryGetAction('CreerUtilisateur', PostMethode::class);
+
+        return $this->api->execute($_POST, $requete);
+    }
+
+    public function ModifierInternaute(ServerRequestInterface $request): array
+    {
+        $requete = $this->api->tryGetAction('ModifInfoInternaute', PatchMethode::class);
+
+        return $this->api->execute($_POST, $requete);
     }
 }

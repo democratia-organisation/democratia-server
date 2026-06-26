@@ -17,6 +17,10 @@ final class Router
 
     private static ?Container $container = null;
 
+    private static ?ResponseFactory $responseFactory = null;
+
+    private static ?JsonStrategy $strategy = null;
+
     public static function GetInstace(): array
     {
         if (Router::$router == null && Router::$request == null) {
@@ -31,14 +35,19 @@ final class Router
     {
         if (Router::$container == null) {
             Router::$container = new Container;
-
+        }
+        if (Router::$responseFactory == null) {
+            Router::$responseFactory = new ResponseFactory;
+        }
+        if (Router::$strategy == null) {
+            Router::$strategy = new JsonStrategy(Router::$responseFactory);
         }
         if (Router::$request != null) {
             Router::$container->add($className)->addArgument(Api::class);
             Router::$container->add(Api::class);
-            $responseFactory = new ResponseFactory;
-            $strategy = new JsonStrategy($responseFactory)->setContainer(Router::$container);
-            Router::$router->setStrategy($strategy);
+
+            Router::$strategy->setContainer(Router::$container);
+            Router::$router->setStrategy(Router::$strategy);
         }
 
     }
@@ -46,5 +55,8 @@ final class Router
     public static function Register(): void
     {
         InternauteRouter::Register();
+        PropositionRouter::Register();
+        ThematiqueRouter::Register();
+        GroupeRouter::Register();
     }
 }
