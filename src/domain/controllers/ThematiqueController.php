@@ -1,8 +1,8 @@
 <?php
 
-namespace Koyok\democratia\data\query;
+namespace Koyok\democratia\domain\controllers;
 
-final class ThematiqueQuery implements IQuery
+final class ThematiqueController
 {
     public array $queries;
 

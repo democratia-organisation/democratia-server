@@ -12,7 +12,7 @@ final class Sanitizer
         $parameters = [];
         $error = [];
 
-        $requeteRaw = $_GET['request'] ?? '';
+        $requeteRaw = $_SERVER['PATH_INFO'];
         if ($requeteRaw === '') {
             if ($_SERVER['REQUEST_URI'] == '/dashboard') {
                 $requete = 'dashboard';
@@ -23,8 +23,8 @@ final class Sanitizer
             while (strpos($requeteRaw, '%') !== false) {
                 $requeteRaw = urldecode($requeteRaw);
             }
-            $requete = trim($requeteRaw);
-            $requete = preg_replace('/\s+$/', '', $requeteRaw);
+            $requeteRaw = trim($requeteRaw);
+            $requeteRaw = preg_replace('/\s+$/', '', $requeteRaw);
 
             $requete = $requeteRaw;
             $parameters = [];

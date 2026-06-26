@@ -1,8 +1,8 @@
 <?php
 
-namespace Koyok\democratia\data\query;
+namespace Koyok\democratia\domain\controllers;
 
-final class GroupeQuery implements IQuery
+final class GroupeController
 {
     private array $queries;
 

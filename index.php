@@ -2,18 +2,14 @@
 
 namespace Koyok\democratia;
 
-use DateTime;
 use Exception;
 use Koyok\democratia\data\query\Api;
-use Koyok\democratia\domain\Extension;
 use Koyok\democratia\lib\CodeDeRetourApi;
 use Koyok\democratia\lib\DeleteMethode;
 use Koyok\democratia\lib\GetMethode;
 use Koyok\democratia\lib\ImageManager;
 use Koyok\democratia\lib\PatchMethode;
 use Koyok\democratia\lib\PostMethode;
-use Koyok\democratia\middleware\Bucket;
-use Koyok\democratia\middleware\JwtChecker;
 use Koyok\democratia\middleware\OutputFormat;
 use Koyok\democratia\middleware\RequestVerificator;
 use Koyok\democratia\middleware\Sanitizer;
@@ -34,14 +30,16 @@ try {
         $jsonRaw = file_get_contents('php://input');
         $data = json_decode($jsonRaw, true);
     }
-    $path = $_SERVER['PATH_INFO'];
-    [$uri,$client, $isInDeveloppment, $isInProduction] = ServeurConfiguration::Configure();
-    $router = new Router($data);
-    $router->Routing($path, $requestMethod);
-    $_GET['request'] = $router->request;
-    $_GET['parameters'] = $router->parameters;
+    $config = new ServeurConfiguration;
+    [$uri,$client, $isInDeveloppment, $isInProduction] = $config->Configure();
     [$requete, $parameters, $error] = Sanitizer::Sanitize();
-
+    // $jwtChecker = $config->JWTConfiguration($requete,$requestMethod,$parameters);
+    // if ($jwtChecker == null) {
+    //     goto fin;
+    // }
+    [$router, $request] = Router::GetInstace();
+    Router::Register();
+    $response = $router->dispatch($request);
     $test = '';
     $methodeToCheck = '';
     $api = new Api;
@@ -66,51 +64,10 @@ try {
         default:
             throw new Exception("Méthode non prise en compte par l'api", CodeDeRetourApi::BadRequest->value);
     }
-
-    $header = getallheaders();
-    $jwtChecker = new JwtChecker($uri, $client);
     if (! empty($error)) {
         throw new Exception($error['message'], $error['code']);
     }
-    if (empty($header['Authorization'])) {
-        if ($requete == 'dashboard') {
-            if ($isInDeveloppment || $isInProduction) {
-                ServeurConfiguration::Dashboard($isInDeveloppment, $isInProduction);
-            } else {
-                throw new Exception('Aucun acces', CodeDeRetourApi::Malicious->value);
-            }
-        } elseif ($requete == 'refresh' && $requestMethod == 'POST') {
-            $retour = $jwtChecker->GenerateKey($parameters[0]);
-            goto a;
-        } else {
-            throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
-        }
-    } else {
-        if (($requete == 'SELECT * FROM internaute WHERE courriel=? AND hashageMDP=?' || $requete === 'refresh') && $requestMethod == 'POST') {
-            $jwtChecker->arrayChecker[3] = new Extension\SubjectChecker($parameters[0]);
-            $test = '/SELECT/i';
-        }
-        $jwtChecker->CheckJWT($header);
-    }
-
-    $account = $jwtChecker->GetPayload()['sub'];
-    $bucket = Bucket::deserialiser($account);
-
-    if (Bucket::hasABucket($account)) {
-        $nombreBille = Bucket::getRatio($account);
-        if ($bucket->getUserLimit()) {
-            header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + Bucket::$tempNettoyage);
-            header('Retry-After: 60');
-            throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
-        } else {
-            $bucket->addRequest();
-            header('X-RateLimit-Limit: '.Bucket::$MAXIMUM_BILLES_USER);
-            header('X-RateLimit-Remaining: '.Bucket::$MAXIMUM_BILLES_USER - $bucket->nombreBilles);
-        }
-    } elseif (! Bucket::serialiser($account)) {
-        throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
-    }
-
+    $config->BucketChecking($jwtChecker);
     RequestVerificator::verificationValeurDonne($requete);
     switch ($requete) {
         // pas de break car les deux fonction exit le programme d'elles mêmes
@@ -131,6 +88,6 @@ try {
     OutputFormat::ErrorFormating($e, $isInProduction, $isInDeveloppment);
     exit;
 }
-a:
+// fin:
 OutputFormat::OutputFormating($retour);
 exit;
