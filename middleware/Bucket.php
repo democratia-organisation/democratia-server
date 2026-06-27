@@ -4,6 +4,20 @@ namespace Koyok\democratia\middleware;
 
 use Exception;
 use Koyok\democratia\lib;
+use Laminas\Diactoros\Response\RedirectResponse;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+final class BucketMiddleware implements MiddlewareInterface
+{
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        return new RedirectResponse($request->getUri());
+
+    }
+}
 
 /**
  * Représente une instance de bucket
@@ -114,6 +128,11 @@ final class Bucket
     private function calcul(): float
     {
         return $this->nombreBilles;
+    }
+
+    public function getUserLimit(): bool
+    {
+        return $this->nombreBilles >= Bucket::$MAXIMUM_BILLES_USER;
     }
 
     public function NettoyerBucket(): bool

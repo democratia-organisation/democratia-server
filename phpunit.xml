@@ -11,8 +11,10 @@
     </testsuites>
     <source>
         <include>
-            <directory>app</directory>
+            <directory>routes</directory>
             <directory>src</directory>
+            <directory>lib</directory>
+            <directory>middleware</directory>
         </include>
     </source>
 </phpunit>

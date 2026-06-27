@@ -6,7 +6,11 @@
     "ext-zip": "*",
     "web-token/jwt-framework": "^3.4",
     "symfony/dotenv": "^8.0",
-    "psr/clock": "^1.0"
+    "psr/clock": "^1.0",
+    "league/route": "^6.2",
+    "laminas/laminas-diactoros": "^3.8",
+    "laminas/laminas-httphandlerrunner": "^2.13",
+    "league/container": "^5.2"
   },
   "config": {
     "allow-plugins": {
@@ -17,7 +21,8 @@
   "require-dev": {
     "jetbrains/phpstorm-stubs": "dev-master",
     "laravel/pint": "^1.29",
-    "pestphp/pest": "^4.4"
+    "pestphp/pest": "^4.7",
+    "guzzlehttp/guzzle": "^7.10"
   },
   "autoload-dev": {
     "psr-4": {

@@ -3,13 +3,25 @@
 namespace Koyok\democratia\middleware;
 
 use Koyok\democratia\lib\CodeDeRetourApi;
+use Laminas\Diactoros\Response\RedirectResponse;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\MiddlewareInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Throwable;
 
-final class OutputFormat
+final class OutputFormat implements MiddlewareInterface
 {
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+    {
+        return new RedirectResponse($request->getUri());
+    }
+
     public static function ErrorFormating(Throwable $e, bool $isInProduction, bool $isInDeveloppment): void
     {
-        http_response_code($e->getCode());
+        $errorCode = $e->getCode();
+        $code = $errorCode >= 200 & $errorCode < 400 ? CodeDeRetourApi::InternalServerError->value : $errorCode;
+        http_response_code($code);
         $reponse = [
             'success' => false,
             'message' => 'Une erreur inattendu est survenu',
@@ -21,7 +33,7 @@ final class OutputFormat
         if ($isInDeveloppment) {
             $reponse['file'] = $e->getFile();
             $reponse['line'] = $e->getLine();
-            $reponse['error_type'] = $e->getMessage();
+            $reponse['error_type'] = get_class($e);
             $reponse['message'] = $e->getMessage();
             $reponse['stackTrace'] = $e->getTraceAsString();
         }

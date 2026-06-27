@@ -1,0 +1,21 @@
+<?php
+
+namespace Koyok\democratia\domain\controllers;
+
+use Koyok\democratia\data\query\Api;
+use Psr\Http\Message\ServerRequestInterface;
+
+final class PropositionController
+{
+    private Api $api;
+
+    public function __construct(Api $api)
+    {
+        $this->api = $api;
+    }
+
+    public function GetPropostionsDUnGroupe(ServerRequestInterface $request, array $args): array
+    {
+        return $this->api->execute([$args['idGroupe']], 'SELECT BIN_TO_UUID(id_groupe) AS id_groupe,id_proposition budget, date_publication, description_proposition, id_proposition, id_thematique, nb_signalement, titre_proposition FROM proposition WHERE id_groupe = UUID_TO_BIN(?)');
+    }
+}

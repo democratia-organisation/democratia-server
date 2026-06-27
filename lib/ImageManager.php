@@ -19,21 +19,24 @@ final class ImageManager
 
             if ($_FILES['image']['size'] > $maxFileSize) {
                 http_response_code(CodeDeRetourApi::NoContent->value);
-                exit;
+
+                return;
             }
 
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             if (! \in_array($extension, $allowedExtensions)) {
 
                 http_response_code(CodeDeRetourApi::BadRequest->value);
-                exit;
+
+                return;
             }
 
             $check = getimagesize($file['tmp_name']);
             if ($check === false) {
 
                 http_response_code(CodeDeRetourApi::Malicious->value);
-                exit;
+
+                return;
             }
 
             $newName = uniqid('img_', true).'.'.$extension;
@@ -43,16 +46,19 @@ final class ImageManager
                 $api->execute([$newName, $id], 'UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)');
 
                 http_response_code(CodeDeRetourApi::NoContent->value);
-                exit;
+
+                return;
             } else {
 
                 http_response_code(CodeDeRetourApi::InternalServerError->value);
-                exit;
+
+                return;
 
             }
         } else {
             http_response_code(CodeDeRetourApi::BadRequest->value);
-            exit;
+
+            return;
         }
     }
 
@@ -73,7 +79,7 @@ final class ImageManager
 
             readfile($filePath);
 
-            exit;
+            return;
 
         } catch (Exception $e) {
 
