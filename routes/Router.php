@@ -3,7 +3,7 @@
 namespace Koyok\democratia\routes;
 
 use Koyok\democratia\data\query\Api;
-use Koyok\democratia\middleware\BucketMiddleware;
+use Koyok\democratia\middleware;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\ServerRequestFactory;
 use League\Container\Container;
@@ -35,7 +35,7 @@ final class Router
     public static function SetMiddleware(): void
     {
         if (Router::$router != null) {
-            Router::$router->middlewares([BucketMiddleware::class]);
+            Router::$router->middlewares([middleware\BucketMiddleware::class, middleware\CleaningBucketMiddlware::class]);
         }
     }
 
