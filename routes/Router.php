@@ -3,6 +3,7 @@
 namespace Koyok\democratia\routes;
 
 use Koyok\democratia\data\query\Api;
+use Koyok\democratia\middleware\BucketMiddleware;
 use Laminas\Diactoros\ResponseFactory;
 use Laminas\Diactoros\ServerRequestFactory;
 use League\Container\Container;
@@ -29,6 +30,13 @@ final class Router
         }
 
         return [Router::$router, Router::$request];
+    }
+
+    public static function SetMiddleware(): void
+    {
+        if (Router::$router != null) {
+            Router::$router->middlewares([BucketMiddleware::class]);
+        }
     }
 
     public static function SetContainer(string $className): void

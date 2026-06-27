@@ -33,11 +33,12 @@ try {
     $config = new ServeurConfiguration;
     [$uri,$client, $isInDeveloppment, $isInProduction] = $config->Configure();
     [$requete, $parameters, $error] = Sanitizer::Sanitize();
-    // $jwtChecker = $config->JWTConfiguration($requete,$requestMethod,$parameters);
-    // if ($jwtChecker == null) {
-    //     goto fin;
-    // }
+    $jwtChecker = $config->JWTConfiguration($requete, $requestMethod, $parameters);
+    if ($jwtChecker == null) {
+        goto fin;
+    }
     [$router, $request] = Router::GetInstace();
+    Router::SetMiddleware();
     Router::Register();
     $response = $router->dispatch($request);
     $test = '';
@@ -88,6 +89,6 @@ try {
     OutputFormat::ErrorFormating($e, $isInProduction, $isInDeveloppment);
     exit;
 }
-// fin:
+fin:
 OutputFormat::OutputFormating($retour);
 exit;
