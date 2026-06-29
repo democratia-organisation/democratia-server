@@ -45,7 +45,7 @@ final class ServeurConfiguration
         return [$this->uri, $this->client, $this->isInDeveloppment, $this->isInProduction];
     }
 
-    public function JWTConfiguration(string $requete, string $requestMethod, array $parameters): ?JwtChecker
+    public function JWTConfiguration(string $requete, string $requestMethod): mixed
     {
         $header = getallheaders();
         $jwtChecker = new JwtChecker($this->uri, $this->client);
@@ -54,30 +54,28 @@ final class ServeurConfiguration
             if ($requete == 'dashboard') {
                 if ($this->isInDeveloppment || $this->isInProduction) {
                     ServeurConfiguration::Dashboard($this->isInDeveloppment, $this->isInProduction);
+                    exit;
                 } else {
                     throw new Exception('Aucun acces', CodeDeRetourApi::Malicious->value);
                 }
-            } elseif ($requete == 'refresh' && $requestMethod == 'POST') {
-                $retour = $jwtChecker->GenerateKey($parameters[0]);
+            } elseif ($requete == '/users/refresh' && $requestMethod == 'POST') {
+                return $jwtChecker->GenerateKey($_POST[0]);
 
-                return null;
             } else {
                 throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
             }
         } else {
             if ($requete == '/users/login' && $requestMethod == 'POST') {
-                $jwtChecker->arrayChecker[3] = new SubjectChecker($parameters[0]);
-                $test = '/SELECT/i';
+                $jwtChecker->arrayChecker[3] = new SubjectChecker($_POST[0]);
             }
             $jwtChecker->CheckJWT($header);
 
-            return $jwtChecker;
+            return $jwtChecker->GetPayload()['sub'];
         }
     }
 
-    public function BucketChecking(JwtChecker $jwtChecker): void
+    public function BucketChecking(string $account): void
     {
-        $account = $jwtChecker->GetPayload()['sub'];
         $bucket = Bucket::deserialiser($account);
 
         if (Bucket::hasABucket($account)) {

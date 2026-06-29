@@ -2,56 +2,8 @@
 
 namespace Koyok\democratia\middleware;
 
-use EvTimer;
 use Exception;
 use Koyok\democratia\lib\CodeDeRetourApi;
-use Laminas\Diactoros\Response\RedirectResponse;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-
-final class CleaningBucketMiddlware implements MiddlewareInterface
-{
-    private Bucket $bucket;
-
-    private static int $tempNettoyage = 3600 * 60;
-
-    private static int $tempsVerifUsage = 60 * 5;
-
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        $w1 = new EvTimer(CleaningBucketMiddlware::$tempNettoyage, 0, function () {
-            $verification = $this->bucket;
-            if (! $verification) {
-                throw new Exception('Erreur inattendu', CodeDeRetourApi::InternalServerError->value);
-            }
-        });
-        $w2 = new EvTimer(CleaningBucketMiddlware::$tempsVerifUsage, 0, function () {
-            $usage = Bucket::getGlobalUsage();
-            if ($usage >= Bucket::$MAXIMUM_BILLES_GLOBAL) {
-                throw new Exception('Le nombre de requete maximal a été atteint', CodeDeRetourApi::InternalServerError->value);
-            }
-        });
-
-        return $handler->handle($request);
-
-    }
-
-    public function __construct(Bucket $bucket)
-    {
-        $this->bucket = $bucket;
-    }
-}
-
-final class BucketMiddleware implements MiddlewareInterface
-{
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        return new RedirectResponse($request->getUri());
-
-    }
-}
 
 /**
  * Représente une instance de bucket

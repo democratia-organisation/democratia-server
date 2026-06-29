@@ -13,20 +13,6 @@ use Jose\Component\Signature;
 use Jose\Component\Signature\JWS;
 use Koyok\democratia\domain\Extension;
 use Koyok\democratia\lib\CodeDeRetourApi;
-use Laminas\Diactoros\Response\RedirectResponse;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-
-final class JWTMiddleware implements MiddlewareInterface
-{
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        return new RedirectResponse($request->getUri());
-
-    }
-}
 
 final class JwtChecker
 {
