@@ -35,7 +35,7 @@ final class Router
     public static function SetMiddleware(): void
     {
         if (Router::$router != null) {
-            Router::$router->middlewares([middleware\ErrorFormatMiddleware::class, middleware\JWTMiddleware::class, middleware\BucketMiddlware::class, middleware\CleaningBucketMiddleware::class, middleware\OutputFormatMiddleware::class]);
+            Router::$router->middlewares([middleware\ErrorFormatMiddleware::class, middleware\JWTMiddleware::class, middleware\BucketMiddleware::class, middleware\CleaningBucketMiddleware::class, middleware\OutputFormatMiddleware::class]);
         }
     }
 
