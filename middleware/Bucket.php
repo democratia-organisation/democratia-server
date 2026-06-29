@@ -3,21 +3,7 @@
 namespace Koyok\democratia\middleware;
 
 use Exception;
-use Koyok\democratia\lib;
-use Laminas\Diactoros\Response\RedirectResponse;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-
-final class BucketMiddleware implements MiddlewareInterface
-{
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
-    {
-        return new RedirectResponse($request->getUri());
-
-    }
-}
+use Koyok\democratia\lib\CodeDeRetourApi;
 
 /**
  * Représente une instance de bucket
@@ -53,7 +39,7 @@ final class Bucket
     public static function getRatio(string $mailUser): float
     {
         if (! new Bucket($mailUser)->MailFormatChecker()) {
-            throw new Exception("Ce n'est pas un mail", lib\CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
         }
 
         return Bucket::deserialiser($mailUser)->calcul();
@@ -76,7 +62,7 @@ final class Bucket
     {
         $bucket = new Bucket($mailUser);
         if (! $bucket->MailFormatChecker()) {
-            throw new Exception("Ce n'est pas un mail", lib\CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
         }
 
         return file_exists($bucket->userFileName);
@@ -92,7 +78,7 @@ final class Bucket
     {
         $bucket = new Bucket($mailUser, $nombreBille);
         if (! $bucket->MailFormatChecker()) {
-            throw new Exception("Ce n'est pas un mail", lib\CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
         }
 
         $tableau = [
@@ -110,7 +96,7 @@ final class Bucket
     {
         $bucket = new Bucket($mailUser);
         if (! $bucket->MailFormatChecker()) {
-            throw new Exception("Ce n'est pas un mail", lib\CodeDeRetourApi::BadRequest->value);
+            throw new Exception("Ce n'est pas un mail", CodeDeRetourApi::BadRequest->value);
         }
         $file = fopen($bucket->userFileName, 'r');
         $value = $file == false ? null : fread($file, filesize($bucket->userFileName));

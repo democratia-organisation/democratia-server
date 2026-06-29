@@ -19,6 +19,7 @@ final class InternauteRouter
             $route->post('', [InternauteController::class, 'CreerInternaute']);
             $route->get('/{email}/doublon', [InternauteController::class, 'GetMailDoublon']);
             $route->get('/{idInternaute}', [InternauteController::class, 'GetInternaute']);
+            $route->post('/refresh', []);
         });
     }
 }

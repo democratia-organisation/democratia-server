@@ -3,21 +3,28 @@
 namespace Koyok\democratia\middleware;
 
 use Koyok\democratia\lib\CodeDeRetourApi;
-use Laminas\Diactoros\Response\RedirectResponse;
+use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Throwable;
 
-final class OutputFormat implements MiddlewareInterface
+final class ErrorFormatMiddleware implements MiddlewareInterface
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        return new RedirectResponse($request->getUri());
+        try {
+            return $handler->handle($request);
+        } catch (Throwable $th) {
+            [$_, $_, $isInDeveloppment, $isInProduction] = new ServeurConfiguration()->Configure();
+            [$retour,$code] = $this->ErrorFormating($th, $isInProduction, $isInDeveloppment);
+
+            return new JsonResponse($retour, $code);
+        }
     }
 
-    public static function ErrorFormating(Throwable $e, bool $isInProduction, bool $isInDeveloppment): void
+    public function ErrorFormating(Throwable $e, bool $isInProduction, bool $isInDeveloppment): array
     {
         $errorCode = $e->getCode();
         $code = $errorCode >= 200 & $errorCode < 400 ? CodeDeRetourApi::InternalServerError->value : $errorCode;
@@ -37,21 +44,7 @@ final class OutputFormat implements MiddlewareInterface
             $reponse['message'] = $e->getMessage();
             $reponse['stackTrace'] = $e->getTraceAsString();
         }
-        echo json_encode($reponse, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-    }
 
-    public static function OutputFormating(array $retour): void
-    {
-        if (empty($retour['data']) && $retour['success'] === true) {
-            $retour['message'] = 'Connexion réussie mais aucun résultat trouvé pour cette requête.';
-            $retour['code'] = CodeDeRetourApi::NoContent->value;
-        }
-        if (empty($reponse['code'])) {
-            $reponse['code'] = CodeDeRetourApi::OK->value;
-        }
-        Sanitizer::PostSanitize($retour);
-        http_response_code($reponse['code']);
-        echo json_encode($retour, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-
+        return [$reponse, $errorCode];
     }
 }
