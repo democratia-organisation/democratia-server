@@ -27,7 +27,7 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
     public function ErrorFormating(Throwable $e, bool $isInProduction, bool $isInDeveloppment): array
     {
         $errorCode = $e->getCode();
-        $code = $errorCode >= 200 & $errorCode < 400 ? CodeDeRetourApi::InternalServerError->value : $errorCode;
+        $code = $errorCode < 400 ? CodeDeRetourApi::InternalServerError->value : $errorCode;
         http_response_code($code);
         $reponse = [
             'success' => false,

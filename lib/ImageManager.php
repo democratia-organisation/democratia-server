@@ -62,7 +62,7 @@ final class ImageManager
         }
     }
 
-    public static function GetGroupeImage(string $nom_image): void
+    public static function GetGroupeImage(string $nom_image): mixed
     {
         try {
             $baseDir = dirname(__DIR__, 1).'/images';
@@ -74,12 +74,9 @@ final class ImageManager
                 ob_end_clean();
             }
 
-            header("Content-Type: $mimeType");
-            header('Content-Length: '.filesize($filePath));
+            $fichier = fopen($filePath, 'r');
 
-            readfile($filePath);
-
-            return;
+            return $fichier;
 
         } catch (Exception $e) {
 

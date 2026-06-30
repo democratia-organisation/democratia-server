@@ -51,7 +51,7 @@ final class ServeurConfiguration
         $jwtChecker = new JwtChecker($this->uri, $this->client);
 
         if (empty($header['Authorization'])) {
-            if ($requete == 'dashboard') {
+            if ($requete == '/dashboard') {
                 if ($this->isInDeveloppment || $this->isInProduction) {
                     ServeurConfiguration::Dashboard($this->isInDeveloppment, $this->isInProduction);
                     exit;

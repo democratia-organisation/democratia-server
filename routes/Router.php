@@ -22,6 +22,8 @@ final class Router
 
     private static ?JsonStrategy $strategy = null;
 
+    public static string $JWT_ATTRIBUTE = 'JWT_KEY';
+
     public static function GetInstace(): array
     {
         if (Router::$router == null && Router::$request == null) {
@@ -35,7 +37,7 @@ final class Router
     public static function SetMiddleware(): void
     {
         if (Router::$router != null) {
-            Router::$router->middlewares([middleware\ErrorFormatMiddleware::class, middleware\JWTMiddleware::class, middleware\BucketMiddleware::class, middleware\CleaningBucketMiddleware::class, middleware\OutputFormatMiddleware::class]);
+            Router::$router->middlewares([new middleware\ErrorFormatMiddleware, new middleware\JWTMiddleware, new middleware\BucketMiddleware, new middleware\CleaningBucketMiddleware, new middleware\OutputFormatMiddleware]);
         }
     }
 

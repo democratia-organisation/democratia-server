@@ -2,8 +2,12 @@
 
 namespace Koyok\democratia\domain\controllers;
 
+use GuzzleHttp\Psr7\Stream;
 use Koyok\democratia\data\query\Api;
+use Koyok\democratia\lib\CodeDeRetourApi;
 use Koyok\democratia\lib\ImageManager;
+use Laminas\Diactoros\Response;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 final class GroupeController
@@ -20,16 +24,27 @@ final class GroupeController
         return $this->api->execute([$args['idGroupe']], 'SELECT budget_thematique, BIN_TO_UUID(tg.id_groupe) AS id_groupe, tg.id_thematique, nom_thematique, g.budget FROM theme_groupe tg INNER JOIN thematique t ON tg.id_thematique = t.id_thematique INNER JOIN groupe g ON g.id_groupe = tg.id_groupe  WHERE tg.id_groupe=UUID_TO_BIN(?,1)');
     }
 
-    public function GetImageDeGroupe(ServerRequestInterface $request, array $args): array
+    public function GetImageDeGroupe(ServerRequestInterface $request, array $args): ResponseInterface
     {
-        ImageManager::GetGroupeImage($args['url']);
+        $fichier = ImageManager::GetGroupeImage($args['url']);
+        $response = new Response;
+        if (\is_bool($fichier)) {
+            $response->withStatus(CodeDeRetourApi::NotFound->value);
 
-        return [];
+            return $response;
+        }
+        $stream = new Stream($fichier);
+        $fileSize = $stream->getSize();
+
+        return $response
+            ->withHeader('Content-Type', mime_content_type($fichier))
+            ->withHeader('Content-Length', $fileSize)
+            ->withBody($stream);
     }
 
     public function GetGroupe(ServerRequestInterface $request, array $args): array
     {
-        return $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as id, nom_groupe, couleur_groupe, g.image, budget, nb_signalement, nbj_dft_discuss, nbj_dft_vote  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
+        return $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as id_groupe, nom_groupe, couleur_groupe, g.image, budget, nb_signalement, nbj_dft_discuss, nbj_dft_vote  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
     }
 
     public function AjouterGroupe(ServerRequestInterface $request): array

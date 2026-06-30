@@ -12,13 +12,13 @@ final class GroupeRouter
         [$router , $_] = Router::GetInstace();
         Router::SetContainer(GroupeController::class);
         $router->group('/groupes', function (RouteGroup $route) {
-            $route->get('/{idInternaute}', [GroupeController::class, 'GetGroupe']);
+            $route->post('/theme', [GroupeController::class, 'AjouterTheme']);
+            $route->post('/internaute', [GroupeController::class, 'AjouterInternaute']);
+            $route->get('/{idInternaute:number}', [GroupeController::class, 'GetGroupe']);
             $route->get('/obtenirImageGroupe/{url}', [GroupeController::class, 'GetImageDeGroupe']);
             $route->get('/{idGroupe:uuid}/thematiqueJoin', [GroupeController::class, 'GetThematiquesDUnGroupe']);
             $route->post('', [GroupeController::class, 'AjouterGroupe']);
-            $route->post('/theme', [GroupeController::class, 'AjouterTheme']);
-            $route->post('/internaute', [GroupeController::class, 'AjouterInternaute']);
-            $route->post('/publierImage/{idGroupe:uuid}', [GroupeController::class, 'PublierImageGroupe']);
+            $route->get('/publierImage/{idGroupe}', [GroupeController::class, 'PublierImageGroupe']);
         });
     }
 }
