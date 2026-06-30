@@ -13,6 +13,7 @@ final class ThematiqueRouter
         Router::SetContainer(ThematiqueController::class);
         $router->group('/thematiques', function (RouteGroup $route) {
             $route->get('', [ThematiqueController::class, 'GetAllGroupe']);
+            $route->post('', [ThematiqueController::class, 'GetAllGroupe']);
         });
     }
 }

@@ -12,7 +12,7 @@ final class PropositionRouter
         [$router,$_] = Router::GetInstace();
         Router::SetContainer(PropositionController::class);
         $router->group('/propositions', function (RouteGroup $route) {
-            $route->get('/{idGroupe}', [PropositionController::class, 'GetPropostionsDUnGroupe']);
+            $route->get('/{idGroupe:uuid}', [PropositionController::class, 'GetPropostionsDUnGroupe']);
 
         });
     }

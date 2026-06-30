@@ -2,8 +2,8 @@
 
 namespace Koyok\democratia\middleware;
 
+use GuzzleHttp\Psr7\Utils;
 use Koyok\democratia\lib\CodeDeRetourApi;
-use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -15,10 +15,14 @@ final class OutputFormatMiddleware implements MiddlewareInterface
     {
         $response = $handler->handle($request);
         $retour = json_decode($response->getBody(), true);
-        $this->OutputFormating($retour);
-        $response->getBody()->write(json_encode($retour));
+        if ($retour != null) {
+            $retour = $this->OutputFormating($retour);
+            $stream = Utils::streamFor('');
+            $response = $response->withBody($stream);
+            $response->getBody()->write(json_encode($retour));
+        }
 
-        return new JsonResponse($response, CodeDeRetourApi::OK->value);
+        return $response;
     }
 
     public function OutputFormating(array $retour): array
@@ -30,7 +34,9 @@ final class OutputFormatMiddleware implements MiddlewareInterface
         if (empty($reponse['code'])) {
             $reponse['code'] = CodeDeRetourApi::OK->value;
         }
-        http_response_code($reponse['code']);
+        if (\count($retour) != 0) {
+            http_response_code($reponse['code']);
+        }
 
         return $retour;
 

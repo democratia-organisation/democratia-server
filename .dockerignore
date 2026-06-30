@@ -4,3 +4,7 @@ npm-debug.log
 .git
 demoratia.session.sql
 .vscode
+totota.txt
+*.sql
+.commitlintrc.json
+package.json
