@@ -9,7 +9,7 @@ final class GroupeRouter
 {
     public static function Register(): void
     {
-        [$router , $_] = Router::GetInstace();
+        [$router, $_] = Router::GetInstace();
         Router::SetContainer(GroupeController::class);
         $router->group('/groupes', function (RouteGroup $route) {
             $route->post('/theme', [GroupeController::class, 'AjouterTheme']);
@@ -19,6 +19,7 @@ final class GroupeRouter
             $route->get('/{idGroupe:uuid}/thematiqueJoin', [GroupeController::class, 'GetThematiquesDUnGroupe']);
             $route->post('', [GroupeController::class, 'AjouterGroupe']);
             $route->get('/publierImage/{idGroupe}', [GroupeController::class, 'PublierImageGroupe']);
+            $route->get('/role/{idInternaute:number', [GroupeController::class, 'GetRole']);
         });
     }
 }

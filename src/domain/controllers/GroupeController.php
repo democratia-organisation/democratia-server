@@ -62,10 +62,20 @@ final class GroupeController
         return $this->api->execute($_POST, 'INSERT INTO infos_membre (id_groupe,id_internaute,id_role,id_notification)VALUES (UUID_TO_BIN(?,0),?,?,?');
     }
 
-    public function PublierImageGroupe(ServerRequestInterface $request, array $args): array
+    public function PublierImageGroupe(ServerRequestInterface $request, array $args): ResponseInterface
     {
-        ImageManager::UploadGroupeImage($args['idGroupe']);
+        $response = new Response;
+        try {
+            ImageManager::UploadGroupeImage($args['idGroupe']);
 
-        return [];
+            return $response;
+        } catch (\Throwable $th) {
+            return $response->withStatus(CodeDeRetourApi::InternalServerError->value);
+        }
+    }
+
+    public function GetRole(ServerRequestInterface $request, array $args): array
+    {
+        return $this->api->execute([$args['idInternaute']], 'SELECT ');
     }
 }
