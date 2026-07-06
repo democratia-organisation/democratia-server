@@ -19,7 +19,6 @@ final class GroupeRouter
             $route->get('/{idGroupe:uuid}/thematiqueJoin', [GroupeController::class, 'GetThematiquesDUnGroupe']);
             $route->post('', [GroupeController::class, 'AjouterGroupe']);
             $route->get('/publierImage/{idGroupe}', [GroupeController::class, 'PublierImageGroupe']);
-            $route->get('/role/{idInternaute:number', [GroupeController::class, 'GetRole']);
         });
     }
 }
