@@ -9,7 +9,7 @@ final class GroupeRouter
 {
     public static function Register(): void
     {
-        [$router , $_] = Router::GetInstace();
+        [$router, $_] = Router::GetInstace();
         Router::SetContainer(GroupeController::class);
         $router->group('/groupes', function (RouteGroup $route) {
             $route->post('/theme', [GroupeController::class, 'AjouterTheme']);
