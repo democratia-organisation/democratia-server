@@ -18,7 +18,7 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         } catch (Throwable $th) {
             [$_, $_, $isInDeveloppment, $isInProduction] = new ServeurConfiguration()->Configure();
-            [$retour,$code] = $this->ErrorFormating($th, $isInProduction, $isInDeveloppment);
+            [$retour, $code] = $this->ErrorFormating($th, $isInProduction, $isInDeveloppment);
 
             return new JsonResponse($retour, $code);
         }
@@ -33,18 +33,18 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
             'success' => false,
             'message' => 'Une erreur inattendu est survenu',
         ];
-        if ($e->getCode() == CodeDeRetourApi::Malicious->value && $isInProduction) {
+        if ($code == CodeDeRetourApi::Malicious->value && $isInProduction) {
             header('Location: https://www.youtube.com/watch?v=dQw4w9WgXcQ');
             exit;
         }
         if ($isInDeveloppment) {
             $reponse['file'] = $e->getFile();
             $reponse['line'] = $e->getLine();
-            $reponse['error_type'] = get_class($e);
+            $reponse['error_type'] = \get_class($e);
             $reponse['message'] = $e->getMessage();
             $reponse['stackTrace'] = $e->getTraceAsString();
         }
 
-        return [$reponse, $errorCode];
+        return [$reponse, $code];
     }
 }

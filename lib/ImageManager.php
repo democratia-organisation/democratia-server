@@ -7,7 +7,7 @@ use Koyok\democratia\data\query\Api;
 
 final class ImageManager
 {
-    public static function UploadGroupeImage(string $id): void
+    public static function UploadImage(string $id, string $tableName, ?string $persnaliseRequete = null): void
     {
         $api = new Api;
         $targetDir = __DIR__.'/images/';
@@ -25,7 +25,6 @@ final class ImageManager
 
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             if (! \in_array($extension, $allowedExtensions)) {
-
                 http_response_code(CodeDeRetourApi::BadRequest->value);
 
                 return;
@@ -33,7 +32,6 @@ final class ImageManager
 
             $check = getimagesize($file['tmp_name']);
             if ($check === false) {
-
                 http_response_code(CodeDeRetourApi::Malicious->value);
 
                 return;
@@ -43,13 +41,17 @@ final class ImageManager
             $targetPath = "$targetDir$newName";
 
             if (move_uploaded_file($file['tmp_name'], $targetPath)) {
-                $api->execute([$newName, $id], 'UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)');
-
+                $requete = '';
+                if ($persnaliseRequete == null) {
+                    $requete = "UPDATE $tableName SET image=? WHERE id_$tableName=?";
+                } else {
+                    $requete = $persnaliseRequete;
+                }
+                $api->execute([$newName, $id], $requete);
                 http_response_code(CodeDeRetourApi::NoContent->value);
 
                 return;
             } else {
-
                 http_response_code(CodeDeRetourApi::InternalServerError->value);
 
                 return;
@@ -62,26 +64,49 @@ final class ImageManager
         }
     }
 
-    public static function GetGroupeImage(string $nom_image): mixed
+    /**
+     * Summary of GetGroupeImage
+     */
+    public static function GetImage(string $nom_image): string
     {
         try {
             $baseDir = dirname(__DIR__, 1).'/images';
             $fileName = file_exists("$baseDir/$nom_image") ? "$baseDir/$nom_image" : "$baseDir/defaultgroupe.png.jpeg";
             $filePath = $fileName;
-            $mimeType = mime_content_type($filePath);
 
             if (ob_get_level()) {
                 ob_end_clean();
             }
 
-            $fichier = fopen($filePath, 'r');
+            $fichier = fopen($filePath, 'a');
 
-            return $fichier;
+            fclose($fichier);
+
+            return $filePath;
 
         } catch (Exception $e) {
-
             http_response_code(CodeDeRetourApi::InternalServerError->value);
             exit;
         }
+    }
+
+    /**
+     * Summary of PaletteCreation
+     *
+     * @param  bool|resource  $image
+     */
+    public static function PaletteCreation(string $image, string $paletteName): int|bool
+    {
+        $finalImagePath = 'images/'.$paletteName;
+        $paletteFile = fopen($finalImagePath, 'w');
+        $imageFile = fopen($image, 'r');
+        if (file_exists($finalImagePath) && file_exists($image)) {
+            $imageFlux = fread($imageFile, filesize($image));
+            $writtenFlux = fwrite($paletteFile, $imageFlux);
+
+            return $writtenFlux;
+        }
+
+        return false;
     }
 }
