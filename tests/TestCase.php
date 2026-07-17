@@ -12,19 +12,14 @@ class TestCase extends BaseTestCase
 
     private string $token = '';
 
-    private function Auth(): void
-    {
-        $response = $this->post('users/refresh', ['modaherry@gmail.com']);
-        $this->token = $response->getBody()->getContents();
-    }
-
     public function get(string $url)
     {
         $dotenv = new Dotenv;
         $dotenv->load(dirname(__DIR__, 1).'/.env');
         $this->token = $_ENV['PUBLIC_KEY'];
+        $url = $_ENV['URL'];
         $baseArray = [
-            'base_uri' => 'http://localhost:80',
+            'base_uri' => $url,
             'http_errors' => false,
             'headers' => [
                 'Accept' => 'application/json',
@@ -44,8 +39,9 @@ class TestCase extends BaseTestCase
         $dotenv = new Dotenv;
         $dotenv->load(dirname(__DIR__, 1).'/.env');
         $this->token = $_ENV['PUBLIC_KEY'];
+        $url = $_ENV['URL'];
         $baseArray = [
-            'base_uri' => 'http://localhost:80',
+            'base_uri' => $url,
             'http_errors' => false,
             'headers' => [
                 'Accept' => 'application/json',
@@ -67,8 +63,9 @@ class TestCase extends BaseTestCase
         $dotenv = new Dotenv;
         $dotenv->load(dirname(__DIR__, 1).'/.env');
         $this->token = $_ENV['PUBLIC_KEY'];
+        $url = $_ENV['URL'];
         $baseArray = [
-            'base_uri' => 'http://localhost:80',
+            'base_uri' => $url,
             'http_errors' => false,
             'headers' => [
                 'Accept' => 'application/json',
@@ -90,8 +87,9 @@ class TestCase extends BaseTestCase
         $dotenv = new Dotenv;
         $dotenv->load(dirname(__DIR__, 1).'/.env');
         $this->token = $_ENV['PUBLIC_KEY'];
+        $url = $_ENV['URL'];
         $baseArray = [
-            'base_uri' => 'http://localhost:80',
+            'base_uri' => $url,
             'http_errors' => false,
             'headers' => [
                 'Accept' => 'application/json',

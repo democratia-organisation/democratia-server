@@ -3,11 +3,12 @@
 namespace Koyok\democratia\lib;
 
 use Exception;
+use GuzzleHttp\Psr7\Stream;
 use Koyok\democratia\data\query\Api;
 
 final class ImageManager
 {
-    public static function UploadImage(string $id, string $tableName, ?string $persnaliseRequete = null): void
+    public static function UploadImage(string $id, string $tableName, ?string $persnaliseRequete = null): int
     {
         $api = new Api;
         $targetDir = __DIR__.'/images/';
@@ -20,21 +21,19 @@ final class ImageManager
             if ($_FILES['image']['size'] > $maxFileSize) {
                 http_response_code(CodeDeRetourApi::NoContent->value);
 
-                return;
+                throw new Exception('Error Processing Request', 1);
             }
 
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp'];
             if (! \in_array($extension, $allowedExtensions)) {
                 http_response_code(CodeDeRetourApi::BadRequest->value);
-
-                return;
+                throw new Exception('Error Processing Request', 1);
             }
 
             $check = getimagesize($file['tmp_name']);
             if ($check === false) {
                 http_response_code(CodeDeRetourApi::Malicious->value);
-
-                return;
+                throw new Exception('Error Processing Request', 1);
             }
 
             $newName = uniqid('img_', true).'.'.$extension;
@@ -50,17 +49,16 @@ final class ImageManager
                 $api->execute([$newName, $id], $requete);
                 http_response_code(CodeDeRetourApi::NoContent->value);
 
-                return;
+                $file = fopen($targetPath, 'r');
+                $stream = new Stream($file);
+                $fileSize = $stream->getSize();
+
+                return $fileSize;
             } else {
-                http_response_code(CodeDeRetourApi::InternalServerError->value);
-
-                return;
-
+                throw new Exception('Error Processing Request', 1);
             }
         } else {
-            http_response_code(CodeDeRetourApi::BadRequest->value);
-
-            return;
+            throw new Exception('Error Processing Request', 1);
         }
     }
 

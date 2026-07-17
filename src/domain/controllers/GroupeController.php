@@ -26,9 +26,21 @@ final class GroupeController
 
     public function GetImageDeGroupe(ServerRequestInterface $request, array $args): ResponseInterface
     {
-        $fichier = ImageManager::GetImage($args['url']);
+
+        $paletteTitle = '';
+        $result = $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as g.image, g.id_groupe  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
+        foreach ($result['data'] as $key => $data) {
+            $fichierPath = ImageManager::GetImage($data['image']);
+            if ($key == 0) {
+                $paletteTitle = 'groupes_image_of_'.$data['id_internaute'];
+            }
+            $imageSize = ImageManager::PaletteCreation($fichierPath, $paletteTitle);
+            if (\is_bool($imageSize)) {
+                throw new \Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
+            }
+        }
         $response = new Response;
-        $file = fopen($fichier, 'r');
+        $file = fopen($paletteTitle, 'r');
         $stream = new Stream($file);
         $fileSize = $stream->getSize();
 
@@ -36,20 +48,12 @@ final class GroupeController
             ->withHeader('Content-Type', mime_content_type($file))
             ->withHeader('Content-Length', $fileSize)
             ->withBody($stream);
+
     }
 
     public function GetGroupe(ServerRequestInterface $request, array $args): array
     {
-        $result = $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as id_groupe, nom_groupe, couleur_groupe, g.image, budget, nb_signalement, nbj_dft_discuss, nbj_dft_vote, id_internaute, id_role  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
-        foreach ($result['data'] as $key => $data) {
-            $fichierPath = ImageManager::GetImage($data['image']);
-            $imageSize = ImageManager::PaletteCreation($fichierPath, 'groupes_image_of_'.$data['id_internaute']);
-            if (! \is_bool($imageSize)) {
-                $this->api->execute([$imageSize, $data['id_groupe']], 'UPDATE groupe SET image_size=? WHERE id_groupe=UUID_TO_BIN(?,0)');
-            } else {
-                throw new \Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
-            }
-        }
+        $result = $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as id_groupe, nom_groupe, couleur_groupe, g.image, budget, nb_signalement, nbj_dft_discuss, nbj_dft_vote, id_internaute, id_role, image_size  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
 
         return $result;
     }
@@ -71,7 +75,8 @@ final class GroupeController
 
     public function PublierImageGroupe(ServerRequestInterface $request, array $args): array
     {
-        ImageManager::UploadImage($args['idGroupe'], 'groupe', 'UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)');
+        $imageSize = ImageManager::UploadImage($args['idGroupe'], 'groupe', 'UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)');
+        $this->api->execute([$imageSize, $args['id_groupe']], 'UPDATE groupe SET image_size=? WHERE id_groupe=UUID_TO_BIN(?,0)');
 
         return [];
     }
