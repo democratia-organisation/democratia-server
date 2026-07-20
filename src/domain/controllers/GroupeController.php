@@ -28,7 +28,7 @@ final class GroupeController
     {
 
         $paletteTitle = '';
-        $result = $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as g.image, g.id_groupe  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
+        $result = $this->api->execute([$args['idInternaute']], 'SELECT bin_to_uuid(g.id_groupe, 1) AS id_groupe, g.image, id_internaute FROM groupe g INNER JOIN infos_membre ifo ON ifo.id_groupe = g.id_groupe WHERE ifo.id_internaute = ?;');
         foreach ($result['data'] as $key => $data) {
             $fichierPath = ImageManager::GetImage($data['image']);
             if ($key == 0) {
@@ -40,7 +40,7 @@ final class GroupeController
             }
         }
         $response = new Response;
-        $file = fopen($paletteTitle, 'r');
+        $file = fopen("images/$paletteTitle", 'r');
         $stream = new Stream($file);
         $fileSize = $stream->getSize();
 
