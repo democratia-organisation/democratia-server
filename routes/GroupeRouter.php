@@ -15,7 +15,7 @@ final class GroupeRouter
             $route->post('/theme', [GroupeController::class, 'AjouterTheme']);
             $route->post('/internaute', [GroupeController::class, 'AjouterInternaute']);
             $route->get('/{idInternaute:number}', [GroupeController::class, 'GetGroupe']);
-            $route->get('/obtenirImageGroupe/{url}', [GroupeController::class, 'GetImageDeGroupe']);
+            $route->get('/obtenirImageGroupes/{idInternaute:number}', [GroupeController::class, 'GetImageDeGroupe']);
             $route->get('/{idGroupe:uuid}/thematiqueJoin', [GroupeController::class, 'GetThematiquesDUnGroupe']);
             $route->post('', [GroupeController::class, 'AjouterGroupe']);
             $route->get('/publierImage/{idGroupe}', [GroupeController::class, 'PublierImageGroupe']);
