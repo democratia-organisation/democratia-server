@@ -35,7 +35,7 @@ final class ServeurConfiguration
             ini_set('display_errors', 0);
             error_reporting(E_ALL);
         } elseif ($this->isInProduction) {
-            $uri = 'https://'.$this->uri;
+            $this->uri = 'https://'.$this->uri;
             ServeurConfiguration::Https_Configuration();
             error_reporting(E_ERROR | E_PARSE);
         } else {
@@ -53,7 +53,7 @@ final class ServeurConfiguration
         if (empty($header['Authorization'])) {
             if ($requete == '/dashboard') {
                 if ($this->isInDeveloppment || $this->isInProduction) {
-                    ServeurConfiguration::Dashboard($this->isInDeveloppment, $this->isInProduction);
+                    ServeurConfiguration::Dashboard($this->isInProduction);
                     exit;
                 } else {
                     throw new Exception('Aucun acces', CodeDeRetourApi::Malicious->value);
@@ -96,18 +96,14 @@ final class ServeurConfiguration
 
     private static function Https_Configuration(): void {}
 
-    public static function Dashboard(bool $isInDev, bool $isInProd): void
+    public static function Dashboard(bool $isInProd): void
     {
         ServeurConfiguration::AuthentificationPageGeneration();
-        if ($isInDev) {
-            header('Location: index.html');
-            exit;
-        }
         if ($isInProd) {
             ServeurConfiguration::TWOFAAuthentification();
-            header('Location: '); // TODO : adresse IP serveur
-            exit;
         }
+        header('Location: index.html');
+        exit;
 
     }
 

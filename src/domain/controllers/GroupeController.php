@@ -4,11 +4,9 @@ namespace Koyok\democratia\domain\controllers;
 
 use GuzzleHttp\Psr7\Stream;
 use Koyok\democratia\data\query\Api;
-use Koyok\democratia\lib\CodeDeRetourApi;
-use Koyok\democratia\lib\ImageManager;
+use Koyok\democratia\lib\{CodeDeRetourApi, ImageManager};
 use Laminas\Diactoros\Response;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 
 final class GroupeController
 {
@@ -71,16 +69,12 @@ final class GroupeController
         return $this->api->execute($_POST, 'INSERT INTO infos_membre (id_groupe,id_internaute,id_role,id_notification)VALUES (UUID_TO_BIN(?,0),?,?,?');
     }
 
-    public function PublierImageGroupe(ServerRequestInterface $request, array $args): ResponseInterface
+    public function PublierImageGroupe(ServerRequestInterface $request, array $args): array
     {
-        $response = new Response;
-        try {
-            ImageManager::UploadGroupeImage($args['idGroupe']);
+        $imageSize = ImageManager::UploadImage($args['idGroupe'], 'groupe', 'UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)');
+        $this->api->execute([$imageSize, $args['id_groupe']], 'UPDATE groupe SET image_size=? WHERE id_groupe=UUID_TO_BIN(?,0)');
 
-            return $response;
-        } catch (\Throwable $th) {
-            return $response->withStatus(CodeDeRetourApi::InternalServerError->value);
-        }
+        return [];
     }
 
     public function GetRole(ServerRequestInterface $request, array $args): array

@@ -2,6 +2,7 @@
 
 namespace Koyok\democratia;
 
+use Koyok\democratia\middleware\{ErrorFormatMiddleware, ServeurConfiguration};
 use Koyok\democratia\routes\Router;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 
@@ -19,6 +20,13 @@ if ($requestMethod === 'POST' || $requestMethod == 'PATCH') {
 }
 [$router, $request] = Router::GetInstace();
 Router::SetMiddleware();
+Router::SetRoute();
 Router::Register();
-$response = $router->dispatch($request);
-(new SapiEmitter)->emit($response);
+try {
+    $response = $router->dispatch($request);
+    (new SapiEmitter)->emit($response);
+} catch (\Throwable $th) {
+    [$_, $_, $isInDeveloppment, $isInProduction] = new ServeurConfiguration()->Configure();
+    $response = new ErrorFormatMiddleware()->ErrorFormating($th, $isInProduction, $isInDeveloppment);
+    echo json_encode($response);
+}

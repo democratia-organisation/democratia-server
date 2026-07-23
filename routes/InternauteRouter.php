@@ -5,11 +5,11 @@ namespace Koyok\democratia\routes;
 use Koyok\democratia\domain\controllers\InternauteController;
 use League\Route\RouteGroup;
 
-final class InternauteRouter
+final class InternauteRouter implements RouterInterface
 {
     public static function Register(): void
     {
-        [$router , $_] = Router::GetInstace();
+        [$router, $_] = Router::GetInstace();
         Router::SetContainer(InternauteController::class);
         $router->group('/users', function (RouteGroup $route) {
             $route->get('/groupes/{idInternaute:number}', [InternauteController::class, 'GetGroupe']);

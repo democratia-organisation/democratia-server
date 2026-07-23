@@ -2,10 +2,10 @@
 
 namespace Koyok\democratia\routes;
 
+use HaydenPierce\ClassFinder\ClassFinder;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\middleware;
-use Laminas\Diactoros\ResponseFactory;
-use Laminas\Diactoros\ServerRequestFactory;
+use Laminas\Diactoros\{ResponseFactory, ServerRequestFactory};
 use League\Container\Container;
 use League\Route\Strategy\JsonStrategy;
 use Psr\Http\Message\ServerRequestInterface;
@@ -22,6 +22,8 @@ final class Router
 
     private static ?JsonStrategy $strategy = null;
 
+    private static array $personalizeRoutes = [];
+
     public static string $JWT_ATTRIBUTE = 'JWT_KEY';
 
     public static function GetInstace(): array
@@ -32,6 +34,12 @@ final class Router
         }
 
         return [Router::$router, Router::$request];
+    }
+
+    public static function SetRoute(): void
+    {
+        $classes = ClassFinder::getClassesInNamespace('Koyok\\democratia\\routes');
+        Router::$personalizeRoutes = array_filter($classes, fn ($class) => is_subclass_of($class, RouterInterface::class));
     }
 
     public static function SetMiddleware(): void
@@ -59,14 +67,13 @@ final class Router
             Router::$strategy->setContainer(Router::$container);
             Router::$router->setStrategy(Router::$strategy);
         }
-
     }
 
     public static function Register(): void
     {
-        InternauteRouter::Register();
-        PropositionRouter::Register();
-        ThematiqueRouter::Register();
-        GroupeRouter::Register();
+        $methode = 'Register';
+        foreach (Router::$personalizeRoutes as $classe) {
+            $classe::$methode();
+        }
     }
 }
