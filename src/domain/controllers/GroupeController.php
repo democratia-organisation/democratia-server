@@ -51,7 +51,7 @@ final class GroupeController
 
     public function GetGroupe(ServerRequestInterface $request, array $args): array
     {
-        return $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as id_groupe, nom_groupe, couleur_groupe, g.image, budget, nb_signalement, nbj_dft_discuss, nbj_dft_vote, ifo.id_role  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
+        return $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as id_groupe, nom_groupe, couleur_groupe, g.image, budget, nb_signalement, nbj_dft_discuss, nbj_dft_vote, image_size, ifo.id_role  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
     }
 
     public function AjouterGroupe(ServerRequestInterface $request): array
@@ -59,7 +59,7 @@ final class GroupeController
         return $this->api->execute($_POST, 'INSERT INTO groupe (id_groupe,nom_groupe,couleur_groupe,budget,nbj_dft_vote,nbj_dft_discuss) VALUES (UUID_TO_BIN(?,0),?,?,?,?,?)');
     }
 
-    public function AjouterTheme(ServerRequestInterface $request, array $args): array
+    public function AjouterTheme(ServerRequestInterface $request): array
     {
         return $this->api->execute($_POST, 'INSERT INTO theme_groupe (id_groupe, id_thematique, budget_thematique) VALUES (UUID_TO_BIN(?,0),?,?)');
     }
