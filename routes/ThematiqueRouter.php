@@ -5,7 +5,7 @@ namespace Koyok\democratia\routes;
 use Koyok\democratia\domain\controllers\ThematiqueController;
 use League\Route\RouteGroup;
 
-final class ThematiqueRouter
+final class ThematiqueRouter implements RouterInterface
 {
     public static function Register(): void
     {

@@ -4,11 +4,9 @@ namespace Koyok\democratia\domain\controllers;
 
 use GuzzleHttp\Psr7\Stream;
 use Koyok\democratia\data\query\Api;
-use Koyok\democratia\lib\CodeDeRetourApi;
-use Koyok\democratia\lib\ImageManager;
+use Koyok\democratia\lib\{CodeDeRetourApi, ImageManager};
 use Laminas\Diactoros\Response;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 
 final class GroupeController
 {
@@ -53,7 +51,7 @@ final class GroupeController
 
     public function GetGroupe(ServerRequestInterface $request, array $args): array
     {
-        return $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as id_groupe, nom_groupe, couleur_groupe, g.image, budget, nb_signalement, nbj_dft_discuss, nbj_dft_vote, ifo.id_role  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
+        return $this->api->execute([$args['idInternaute']], 'SELECT BIN_TO_UUID(g.id_groupe, 1) as id_groupe, nom_groupe, couleur_groupe, g.image, budget, nb_signalement, nbj_dft_discuss, nbj_dft_vote, image_size, ifo.id_role  FROM groupe g  INNER JOIN infos_membre ifo ON g.id_groupe = ifo.id_groupe WHERE ifo.id_internaute=?');
     }
 
     public function AjouterGroupe(ServerRequestInterface $request): array
@@ -61,7 +59,7 @@ final class GroupeController
         return $this->api->execute($_POST, 'INSERT INTO groupe (id_groupe,nom_groupe,couleur_groupe,budget,nbj_dft_vote,nbj_dft_discuss) VALUES (UUID_TO_BIN(?,0),?,?,?,?,?)');
     }
 
-    public function AjouterTheme(ServerRequestInterface $request, array $args): array
+    public function AjouterTheme(ServerRequestInterface $request): array
     {
         return $this->api->execute($_POST, 'INSERT INTO theme_groupe (id_groupe, id_thematique, budget_thematique) VALUES (UUID_TO_BIN(?,0),?,?)');
     }
@@ -71,16 +69,12 @@ final class GroupeController
         return $this->api->execute($_POST, 'INSERT INTO infos_membre (id_groupe,id_internaute,id_role,id_notification)VALUES (UUID_TO_BIN(?,0),?,?,?');
     }
 
-    public function PublierImageGroupe(ServerRequestInterface $request, array $args): ResponseInterface
+    public function PublierImageGroupe(ServerRequestInterface $request, array $args): array
     {
-        $response = new Response;
-        try {
-            ImageManager::UploadGroupeImage($args['idGroupe']);
+        $imageSize = ImageManager::UploadImage($args['idGroupe'], 'groupe', 'UPDATE groupe SET image=? WHERE id_groupe=UUID_TO_BIN(?, 0)');
+        $this->api->execute([$imageSize, $args['id_groupe']], 'UPDATE groupe SET image_size=? WHERE id_groupe=UUID_TO_BIN(?,0)');
 
-            return $response;
-        } catch (\Throwable $th) {
-            return $response->withStatus(CodeDeRetourApi::InternalServerError->value);
-        }
+        return [];
     }
 
     public function GetRole(ServerRequestInterface $request, array $args): array
