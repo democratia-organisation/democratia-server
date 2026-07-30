@@ -46,7 +46,8 @@ RUN echo "xdebug.mode=debug,develop"  >> /usr/local/etc/php/conf.d/docker-php-ex
     echo "xdebug.client_port=9003"  >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
     echo "xdebug.idekey=VSCODE"  >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
     echo "xdebug.discover_client_host=0"  >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
-    echo "xdebug.log=/tmp/xdebug.log"  >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+    echo "xdebug.log=/tmp/xdebug.log"  >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
+    echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 WORKDIR /var/www/html
 

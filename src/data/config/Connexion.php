@@ -2,7 +2,6 @@
 
 namespace Koyok\democratia\data\config;
 
-use Koyok\democratia\middleware\ServeurConfiguration;
 use PDO;
 use Pdo\Mysql;
 use PDOException;
@@ -13,6 +12,7 @@ final class Connexion
         Mysql::ATTR_INIT_COMMAND => 'SET NAMES utf8mb4',
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::ATTR_PERSISTENT => true,
     ];
 
     private static $pdo;
@@ -43,10 +43,6 @@ final class Connexion
 
         while ($attempts < $max_retries) {
             try {
-                [$_, $isInProduction] = ServeurConfiguration::EnvDetermination();
-                if ($isInProduction) {
-                    $t[PDO::ATTR_PERSISTENT] = true;
-                }
                 self::$pdo = new PDO("mysql:host=$h;dbname=$d", $l, $p, $t);
 
                 return;
