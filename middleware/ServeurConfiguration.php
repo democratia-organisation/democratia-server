@@ -102,7 +102,8 @@ final class ServeurConfiguration
         if ($isInProd) {
             ServeurConfiguration::TWOFAAuthentification();
         }
-        header('Location: index.html');
+        $page = file_get_contents('/var/www/html/index.html');
+        echo $page;
         exit;
 
     }
