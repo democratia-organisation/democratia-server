@@ -30,7 +30,7 @@ COPY composer.* .
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 COPY . .
-RUN rm -rf .husky .vscode
+RUN rm -rf .husky .vscode package.json bun.lockb
 
 RUN chown -R www-data:www-data /var/www/html
 
