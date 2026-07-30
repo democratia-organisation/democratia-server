@@ -107,7 +107,7 @@ final class ServeurConfiguration
 
     }
 
-    private static function EnvDetermination(): array
+    public static function EnvDetermination(): array
     {
         $environement = ServeurConfiguration::EnvScanning('ENVIRONNEMENT');
 
