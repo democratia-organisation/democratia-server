@@ -128,7 +128,7 @@ final class JwtChecker
         $this->payload = json_decode($this->jws->getPayload(), true);
         try {
             if (! $jwsVerifier->verifyWithKey($this->jws, $this->privateKey, 0)) {
-                throw new Exception("La clé n'est pas la bonne", CodeDeRetourApi::Unauthorized->value);
+                throw new Exception("La clé n'est pas la bonne", CodeDeRetourApi::Malicious->value);
             }
             $claimVerifier = $claimChecker->check($this->payload);
             if (\count($claimVerifier) != \count($this->arrayChecker)) {
