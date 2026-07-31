@@ -101,7 +101,7 @@ final class ServeurConfiguration
         if ($isInProd) {
             ServeurConfiguration::TWOFAAuthentification();
         }
-        $page = file_get_contents('/var/www/html/index.html');
+        $page = file_get_contents('/var/www/html/dashboard.html');
         echo $page;
         exit;
 

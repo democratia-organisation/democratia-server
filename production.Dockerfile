@@ -1,4 +1,4 @@
-FROM php:8-fpm-alpine@sha256:79def1d16ece3ab1a6656c46a23bfd80ad33887fbd33626e7bd743cef54ef9c6
+FROM php:8-fpm-alpine@sha256:9690c7464f2d5f2acfab2822f0aa757994460c3edf737d5710fbcab974ea8459
 
 LABEL com.democratia.server="1.0.0"
 
