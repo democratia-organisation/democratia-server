@@ -4,12 +4,10 @@ namespace Koyok\democratia\middleware;
 
 use Exception;
 use Jose\Bundle\JoseFramework\DependencyInjection\Source\KeyManagement\JWKSetSource\JWKSet;
-use Jose\Component\Checker;
 use Jose\Component\Checker\InvalidClaimException;
-use Jose\Component\Core\AlgorithmManager;
-use Jose\Component\Core\JWK;
+use Jose\Component\{Checker, Signature};
+use Jose\Component\Core\{AlgorithmManager, JWK};
 use Jose\Component\KeyManagement\JWKFactory;
-use Jose\Component\Signature;
 use Jose\Component\Signature\JWS;
 use Koyok\democratia\domain\Extension;
 use Koyok\democratia\lib\CodeDeRetourApi;
@@ -74,7 +72,7 @@ final class JwtChecker
         if (file_exists($keyFile)) {
             $this->privateKey = JWKFactory::createFromValues(json_decode(file_get_contents($keyFile), true));
         } else {
-            $this->privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig']);
+            $this->privateKey = JWKFactory::createECKey('P-256', ['alg' => 'ES256', 'use' => 'sig', 'kid' => 'key-2026-v2']);
             file_put_contents($keyFile, json_encode($this->privateKey->jsonSerialize()));
         }
     }
@@ -90,6 +88,7 @@ final class JwtChecker
             'sub' => $email,
             'iat' => $now,
             'exp' => $now + JwtChecker::$KEY_TIME,
+            'kid' => 'key-2026-v2',
         ]);
         $payloadRefresh = json_encode([
             'iss' => $this->uri,
@@ -97,6 +96,7 @@ final class JwtChecker
             'sub' => $email,
             'iat' => $now,
             'exp' => $now + JwtChecker::$REFRESH_TIME,
+            'kid' => 'key-2026-v2',
         ]);
         $jws = $jwsBuilder
             ->create()
@@ -128,7 +128,7 @@ final class JwtChecker
         $this->payload = json_decode($this->jws->getPayload(), true);
         try {
             if (! $jwsVerifier->verifyWithKey($this->jws, $this->privateKey, 0)) {
-                throw new Exception("La clé n'est pas la bonne", CodeDeRetourApi::Malicious->value);
+                throw new Exception("La clé n'est pas la bonne", CodeDeRetourApi::Unauthorized->value);
             }
             $claimVerifier = $claimChecker->check($this->payload);
             if (\count($claimVerifier) != \count($this->arrayChecker)) {
