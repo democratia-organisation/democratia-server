@@ -6,7 +6,6 @@ use DateTime;
 use Exception;
 use Koyok\democratia\domain\Extension\SubjectChecker;
 use Koyok\democratia\lib\CodeDeRetourApi;
-use Symfony\Component\Dotenv\Dotenv;
 
 final class ServeurConfiguration
 {
@@ -102,12 +101,13 @@ final class ServeurConfiguration
         if ($isInProd) {
             ServeurConfiguration::TWOFAAuthentification();
         }
-        header('Location: index.html');
+        $page = file_get_contents('/var/www/html/dashboard.html');
+        echo $page;
         exit;
 
     }
 
-    private static function EnvDetermination(): array
+    public static function EnvDetermination(): array
     {
         $environement = ServeurConfiguration::EnvScanning('ENVIRONNEMENT');
 
@@ -116,10 +116,7 @@ final class ServeurConfiguration
 
     private static function EnvScanning(string $nomEnv): string
     {
-        $dotenv = new Dotenv;
-        $dotenv->load(dirname(__DIR__, 1).'/.env');
-
-        return $_ENV[$nomEnv];
+        return getenv($nomEnv);
     }
 
     private static function AuthentificationPageGeneration(): void {}

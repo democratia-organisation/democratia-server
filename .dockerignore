@@ -2,9 +2,7 @@ node_modules
 npm-debug.log
 .env
 .git
-demoratia.session.sql
 .vscode
 totota.txt
 *.sql
 .commitlintrc.json
-package.json
