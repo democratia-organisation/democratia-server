@@ -57,6 +57,8 @@ RUN composer install
 
 COPY . .
 
+RUN mkdir -p /etc/php/8.5/fpm/pool.d/ && cp -r ./config/www.developpment.conf /etc/php/8.5/fpm/pool.d/www.conf 
+
 EXPOSE 9000
 
 CMD ["php-fpm"]
