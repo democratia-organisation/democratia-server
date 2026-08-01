@@ -1,34 +1,30 @@
-# syntax=docker/dockerfile:1
-
-FROM php:8.2-apache@sha256:d21cb9d7b71bffd3ce7b10cb88015ae1f2b5851335b53c6aeba6aa73380d1ac2
+FROM php:8-fpm-alpine@sha256:9690c7464f2d5f2acfab2822f0aa757994460c3edf737d5710fbcab974ea8459
 
 LABEL com.democratia.server="1.0.0"
 
-RUN apt-get update && apt-get install --yes --no-install-recommends \
-    libfreetype6-dev \
-    libjpeg-dev \
-    libpng-dev \
-    libzip-dev \
-    unzip
-    zip
-
-RUN groupadd -r common_user && useradd --no-log-init -r -g common_user koyok
-USER koyok
-
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_mysql gd zip opcache
-RUN a2enmod rewrite
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+RUN install-php-extensions pdo_mysql gd zip opcache
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/html
+RUN addgroup -S common_user && adduser -S -G common_user koyok
 
-RUN chown -R www-data:www-data /var/www/html
-RUN echo "FallbackResource /index.php" > .htaccess
+WORKDIR /var/www/html
 
 COPY composer.* .
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 COPY . .
-RUN rm -rf .husky
+RUN rm -rf .husky .vscode package.json bun.lockb
+
+RUN mkdir -p /usr/local/etc/php-fpm.d/ && cp ./config/www.production.conf /usr/local/etc/php-fpm.d/www.conf \
+    && rm -rf ./config
+
+RUN chown -R www-data:www-data /var/www/html
+
+USER www-data
+
+EXPOSE 9000
+
+CMD ["php-fpm"]

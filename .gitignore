@@ -8,3 +8,4 @@ config/private.key
 node_modules
 bucket/
 TODO.md
+*.key
