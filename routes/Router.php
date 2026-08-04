@@ -4,7 +4,7 @@ namespace Koyok\democratia\routes;
 
 use HaydenPierce\ClassFinder\ClassFinder;
 use Koyok\democratia\data\query\Api;
-use Koyok\democratia\middleware;
+use Koyok\democratia\middleware\{BucketMiddleware, CleaningBucketMiddleware, ErrorFormatMiddleware, JWTMiddleware, OutputFormatMiddleware, ServeurConfiguration};
 use Laminas\Diactoros\{ResponseFactory, ServerRequestFactory};
 use League\Container\Container;
 use League\Route\Strategy\JsonStrategy;
@@ -45,7 +45,16 @@ final class Router
     public static function SetMiddleware(): void
     {
         if (Router::$router != null) {
-            Router::$router->middlewares([new middleware\ErrorFormatMiddleware, new middleware\JWTMiddleware, new middleware\BucketMiddleware, new middleware\CleaningBucketMiddleware, new middleware\OutputFormatMiddleware]);
+            Router::$router->middlewares([new ErrorFormatMiddleware, new JWTMiddleware, new BucketMiddleware, new CleaningBucketMiddleware, new OutputFormatMiddleware]);
+            [$isInDev, $isInProd] = ServeurConfiguration::EnvDetermination();
+            if ($isInProd) {
+                Router::$router->setScheme('https');
+                Router::$router->setPort(443);
+            } elseif ($isInDev) {
+                Router::$router->setScheme('http');
+                Router::$router->setPort(80);
+            }
+            Router::$router->setHost(getenv('URL'));
         }
     }
 
