@@ -57,7 +57,9 @@ RUN composer install
 
 COPY . .
 
-RUN mkdir -p /etc/php/8.5/fpm/pool.d/ && cp -r ./config/www.developpment.conf /etc/php/8.5/fpm/pool.d/www.conf 
+RUN mkdir -p /etc/php/8.5/fpm/pool.d/ && cp -r ./config/www.developpment.conf /etc/php/8.5/fpm/pool.d/www.conf
+RUN chown -R www-data:www-data /var/www/html
+
 
 EXPOSE 9000
 

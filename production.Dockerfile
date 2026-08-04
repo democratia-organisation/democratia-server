@@ -16,7 +16,7 @@ COPY composer.* .
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 COPY . .
-RUN rm -rf .husky .vscode package.json bun.lockb
+RUN rm -rf .husky .vscode package.json bun.lock
 
 RUN mkdir -p /usr/local/etc/php-fpm.d/ && cp ./config/www.production.conf /usr/local/etc/php-fpm.d/www.conf \
     && rm -rf ./config
