@@ -7,3 +7,4 @@ totota.txt
 *.sql
 *.env
 .commitlintrc.json
+tests

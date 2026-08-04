@@ -8,8 +8,6 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-RUN addgroup -S common_user && adduser -S -G common_user koyok
-
 WORKDIR /var/www/html
 
 COPY composer.* .
