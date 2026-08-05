@@ -17,7 +17,7 @@ jobs:
       - name: Trigger App Workflow
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.APP_REPO_TOKEN }}
+          token: "hello"
           repository: democratia/democratia-app
           event-type: server-deployed-successfully
           client-payload: '{"environment": "production", "server_status": "healthy"}'
