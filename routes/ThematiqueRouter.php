@@ -12,8 +12,8 @@ final class ThematiqueRouter implements RouterInterface
         [$router, $_] = Router::GetInstace();
         Router::SetContainer(ThematiqueController::class);
         $router->group('/thematiques', function (RouteGroup $route) {
-            $route->get('', [ThematiqueController::class, 'GetAllGroupe']);
-            $route->post('', [ThematiqueController::class, 'GetAllGroupe']);
+            $route->get('', [ThematiqueController::class, 'GetAllTheme']);
+            $route->post('', [ThematiqueController::class, 'CreerThematique']);
         });
     }
 }

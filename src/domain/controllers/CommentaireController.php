@@ -4,6 +4,7 @@ namespace Koyok\democratia\domain\controllers;
 
 use GuzzleHttp\Psr7\Response;
 use Koyok\democratia\data\query\Api;
+use Koyok\democratia\lib\CodeDeRetourApi;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 
 final class CommentaireController
@@ -25,9 +26,10 @@ final class CommentaireController
         $response = new Response;
         $contenu = $this->api->execute($_POST, 'INSERT INTO commentaire (contenu_message,horodatage,id_groupe,id_internaute,id_proposition)VALUES (?,?,?,?,?);');
         if ($contenu['success'] == true) {
-            $response = $response->withStatus($contenu['code']);
+            return $response->withStatus($contenu['code']);
+        } else {
+            throw new \Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
         }
 
-        return $response;
     }
 }
