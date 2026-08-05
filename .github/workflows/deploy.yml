@@ -1,0 +1,9 @@
+name: Deploy Server
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  afficher:
+    runs-on: bash
