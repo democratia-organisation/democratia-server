@@ -6,3 +6,6 @@ on:
 jobs:
   afficher:
     runs-on: bahs
+    steps:
+      - name: affichier
+        run: cat "hello"

@@ -6,4 +6,7 @@ on:
       - main
 jobs:
   afficher:
-    runs-on: bash
+    runs-on: bahs
+    steps:
+      - name: affichier
+        run: cat "hello"
