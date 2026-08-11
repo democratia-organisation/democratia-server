@@ -96,7 +96,7 @@ final class ImageManager
     public static function PaletteCreation(string $image, string $paletteName): int|bool
     {
         $finalImagePath = 'images/'.$paletteName;
-        $paletteFile = fopen($finalImagePath, 'w');
+        $paletteFile = fopen($finalImagePath, 'a');
         $imageFile = fopen($image, 'r');
         if (file_exists($finalImagePath) && file_exists($image)) {
             $imageFlux = fread($imageFile, filesize($image));
