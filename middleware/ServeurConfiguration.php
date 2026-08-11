@@ -2,7 +2,6 @@
 
 namespace Koyok\democratia\middleware;
 
-use DateTime;
 use Exception;
 use Koyok\democratia\domain\Extension\SubjectChecker;
 use Koyok\democratia\lib\CodeDeRetourApi;
@@ -70,26 +69,6 @@ final class ServeurConfiguration
             $jwtChecker->CheckJWT($header);
 
             return $jwtChecker->GetPayload()['sub'];
-        }
-    }
-
-    public function BucketChecking(string $account): void
-    {
-        $bucket = Bucket::deserialiser($account);
-
-        if (Bucket::hasABucket($account)) {
-            $nombreBille = Bucket::getRatio($account);
-            if ($bucket->getUserLimit()) {
-                header('X-RateLimit-Reset: '.new DateTime()->getTimestamp() + Bucket::$tempNettoyage);
-                header('Retry-After: 60');
-                throw new Exception("Le nombre de requete par l'utilisateur a été atteint", CodeDeRetourApi::RateLimit->value);
-            } else {
-                $bucket->addRequest();
-                header('X-RateLimit-Limit: '.Bucket::$MAXIMUM_BILLES_USER);
-                header('X-RateLimit-Remaining: '.Bucket::$MAXIMUM_BILLES_USER - $bucket->nombreBilles);
-            }
-        } elseif (! Bucket::serialiser($account)) {
-            throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
         }
     }
 
