@@ -4,11 +4,7 @@ namespace Koyok\democratia\data\query;
 
 use Exception;
 use Koyok\democratia\data\config\Connexion;
-use Koyok\democratia\lib\CodeDeRetourApi;
-use Koyok\democratia\lib\DeleteMethode;
-use Koyok\democratia\lib\GetMethode;
-use Koyok\democratia\lib\PatchMethode;
-use Koyok\democratia\lib\PostMethode;
+use Koyok\democratia\lib\{CodeDeRetourApi, DeleteMethode, GetMethode, PatchMethode, PostMethode};
 use PDO;
 use PDOException;
 use RuntimeException;
@@ -20,7 +16,7 @@ use RuntimeException;
  * toutes les actions avec cette api sont prepares, si votre requete n'a pas de parametre,
  * donnez un tableau de parametre vide pour executer, sinon cela bloquera
  */
-class Api
+final class Api
 {
     private CodeDeRetourApi $retourApi;
 
@@ -151,9 +147,10 @@ class Api
         }
     }
 
-    public function setParametreErreur(int $codeDerreur,
-        string $messageDeRetour): void
-    {
+    public function setParametreErreur(
+        int $codeDerreur,
+        string $messageDeRetour
+    ): void {
         $this->messageDeRetour = $messageDeRetour;
         $this->retourApi = CodeDeRetourApi::tryFrom($codeDerreur);
         $this->codeDeRetourApi = $codeDerreur;

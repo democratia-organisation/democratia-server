@@ -13,6 +13,7 @@ final class CommentaireRouter implements RouterInterface
         Router::SetContainer(CommentaireController::class);
         $router->group('/commentaires', function (RouteGroup $route) {
             $route->get('/{idGroupe:uuid}/{idProposition:number}', [CommentaireController::class, 'GetMessageFromProposition']);
+            $route->post('', [CommentaireController::class, 'PostMessage']);
         });
     }
 }

@@ -1,0 +1,23 @@
+name: Deploy Server
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_run:
+    workflows: ["Test workflows"]
+    types:
+      - completed
+jobs:
+  afficher:
+    runs-on: bahs
+    steps:
+      - name: affichier
+        run: cat "hello"
+      - name: Trigger App Workflow
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: "hello"
+          repository: democratia/democratia-app
+          event-type: server-deployed-successfully
+          client-payload: '{"environment": "production", "server_status": "healthy"}'

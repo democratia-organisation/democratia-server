@@ -1,8 +1,12 @@
 node_modules
+vendor
 npm-debug.log
 .env
 .git
 .vscode
 totota.txt
 *.sql
+*.env
 .commitlintrc.json
+tests
+pint.json

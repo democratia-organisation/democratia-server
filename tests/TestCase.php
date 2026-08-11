@@ -4,9 +4,8 @@ namespace Tests;
 
 use GuzzleHttp\Client;
 use PHPUnit\Framework\TestCase as BaseTestCase;
-use Symfony\Component\Dotenv\Dotenv;
 
-class TestCase extends BaseTestCase
+final class TestCase extends BaseTestCase
 {
     private Client $client;
 
@@ -14,10 +13,13 @@ class TestCase extends BaseTestCase
 
     public function get(string $url)
     {
-        $dotenv = new Dotenv;
-        $dotenv->load(dirname(__DIR__, 1).'/.env');
-        $this->token = $_ENV['PUBLIC_KEY'];
-        $url = $_ENV['URL'];
+        $url = getenv('URL');
+        $env = getenv('ENVIRONNEMENT');
+        if ($env == 'production') {
+            $url = "https://$url:443";
+        } elseif ($env == 'developpment') {
+            $url = "http://$url:80";
+        }
         $baseArray = [
             'base_uri' => $url,
             'http_errors' => false,
@@ -36,10 +38,13 @@ class TestCase extends BaseTestCase
 
     public function post(string $url, array $parameters = [])
     {
-        $dotenv = new Dotenv;
-        $dotenv->load(dirname(__DIR__, 1).'/.env');
-        $this->token = $_ENV['PUBLIC_KEY'];
-        $url = $_ENV['URL'];
+        $url = getenv('URL');
+        $env = getenv('ENVIRONNEMENT');
+        if ($env == 'production') {
+            $url = "https://$url:443";
+        } elseif ($env == 'developpment') {
+            $url = "http://$url:80";
+        }
         $baseArray = [
             'base_uri' => $url,
             'http_errors' => false,
@@ -60,10 +65,13 @@ class TestCase extends BaseTestCase
 
     public function patch(string $url, array $parameters = [])
     {
-        $dotenv = new Dotenv;
-        $dotenv->load(dirname(__DIR__, 1).'/.env');
-        $this->token = $_ENV['PUBLIC_KEY'];
-        $url = $_ENV['URL'];
+        $url = getenv('URL');
+        $env = getenv('ENVIRONNEMENT');
+        if ($env == 'production') {
+            $url = "https://$url:443";
+        } elseif ($env == 'developpment') {
+            $url = "http://$url:80";
+        }
         $baseArray = [
             'base_uri' => $url,
             'http_errors' => false,
@@ -84,10 +92,13 @@ class TestCase extends BaseTestCase
 
     public function delete(string $url)
     {
-        $dotenv = new Dotenv;
-        $dotenv->load(dirname(__DIR__, 1).'/.env');
-        $this->token = $_ENV['PUBLIC_KEY'];
-        $url = $_ENV['URL'];
+        $url = getenv('URL');
+        $env = getenv('ENVIRONNEMENT');
+        if ($env == 'production') {
+            $url = "https://$url:443";
+        } elseif ($env == 'developpment') {
+            $url = "http://$url:80";
+        }
         $baseArray = [
             'base_uri' => $url,
             'http_errors' => false,

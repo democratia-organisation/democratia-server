@@ -1,0 +1,11 @@
+name: Test workflow
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  afficher:
+    runs-on: bahs
+    steps:
+      - name: affichier
+        run: cat "hello"

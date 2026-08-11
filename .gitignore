@@ -4,8 +4,8 @@ images/
 *.sql
 vendor
 config/private.key
-.env
 node_modules
 bucket/
 TODO.md
 *.key
+*.env

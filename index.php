@@ -25,7 +25,7 @@ try {
     $response = $router->dispatch($request);
     (new SapiEmitter)->emit($response);
 } catch (\Throwable $th) {
-    [$_, $_, $isInDeveloppment, $isInProduction] = new ServeurConfiguration()->Configure();
+    [$isInDeveloppment, $isInProduction] = ServeurConfiguration::EnvDetermination();
     $response = new ErrorFormatMiddleware()->ErrorFormating($th, $isInProduction, $isInDeveloppment);
     echo json_encode($response);
 }
