@@ -3,8 +3,8 @@
 namespace Koyok\democratia\lib;
 
 use Exception;
-use GuzzleHttp\Psr7\Stream;
 use Koyok\democratia\data\query\Api;
+use Laminas\Diactoros\Stream;
 
 final class ImageManager
 {

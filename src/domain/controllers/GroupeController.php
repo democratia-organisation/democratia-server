@@ -2,10 +2,9 @@
 
 namespace Koyok\democratia\domain\controllers;
 
-use GuzzleHttp\Psr7\Stream;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\lib\{CodeDeRetourApi, ImageManager};
-use Laminas\Diactoros\Response;
+use Laminas\Diactoros\{Response, Stream};
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 
 final class GroupeController

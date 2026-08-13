@@ -2,9 +2,9 @@
 
 namespace Koyok\democratia\domain\controllers;
 
-use GuzzleHttp\Psr7\Response;
 use Koyok\democratia\data\query\Api;
 use Koyok\democratia\lib\CodeDeRetourApi;
+use Laminas\Diactoros\Response;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 
 final class ThematiqueController
