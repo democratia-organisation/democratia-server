@@ -14,12 +14,13 @@ COPY --from=node:latest /usr/local/bin/node /usr/local/bin/node
 
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
-RUN apt-get update && apt-get install --yes --no-install-recommends \
+RUN apt-get update && apt-get upgrade --yes && apt-get install --yes --no-install-recommends \
     git \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
     libzip-dev \
+    librdkafka-dev \
     zip \
     unzip \
     $PHPIZE_DEPS \
@@ -34,11 +35,12 @@ RUN wget https://github.com/php/pie/releases/latest/download/pie.phar \
     && mv pie.phar /usr/local/bin/pie
 
 RUN pie install xdebug/xdebug \
-    && pie install osmanov/pecl-ev
+    && pie install osmanov/pecl-ev \
+    && pie install rdkafka/rdkafka
 
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_mysql gd zip \
-    && docker-php-ext-enable xdebug ev
+    && docker-php-ext-enable xdebug ev rdkafka
 
 RUN echo "xdebug.mode=debug,develop"  >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
     echo "xdebug.start_with_request=yes"  >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
@@ -60,7 +62,6 @@ COPY . .
 RUN mkdir -p /etc/php/8.5/fpm/pool.d/ && cp -r ./config/www.developpment.conf /etc/php/8.5/fpm/pool.d/www.conf
 RUN chown -R www-data:www-data /var/www/html
 RUN git config --global --add safe.directory /var/www/html
-
 
 EXPOSE 9000
 
