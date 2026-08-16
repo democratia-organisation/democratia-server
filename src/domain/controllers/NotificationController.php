@@ -1,0 +1,55 @@
+<?php
+
+namespace Koyok\democratia\domain\controllers;
+
+use Guzzlehttp\Client;
+use Koyok\democratia\data\query\Api;
+use Laminas\Diactoros\Response;
+use Psr\Http\Message\{RequestInterface, ResponseInterface};
+
+final class NotificationController
+{
+    private Api $api;
+
+    public function __construct(Api $api)
+    {
+        $this->api = $api;
+    }
+
+    public function RegitreNotification(RequestInterface $request, array $args): ResponseInterface
+    {
+        $response = new Response;
+        if ($_POST['platform'] == 'wns') {
+            $tenantID = getenv('AZURE_LOCATION_ID');
+            $appID = getenv('AZURE_APP_ID');
+            $secretID = getenv('AZURE_SECRET');
+            $baseArray = [
+                'base_uri' => "https://login.microsoftonline.com/$tenantID/oauth2/v2.0",
+                'http_errors' => false,
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                    'Host' => 'login.microsoftonline.com',
+                    'Content-Length' => 160,
+                ],
+            ];
+            $client = new Client($baseArray);
+            $response = $client->post("/token?grant_type=client_credentials&client_id=$appID&client_secret=$secretID&scope=https://wns.windows.com/.default/");
+        }
+        $service = $_POST['platform'];
+        $this->api->execute([$_POST['token'], $args['deviceId']], "UPDATE token SET $service=? WHERE device_id=?");
+
+        return $response;
+    }
+
+    public function DeleteNotification(RequestInterface $request, array $args)
+    {
+        $this->api->execute(array_values($args), 'UPDATE token SET wns=NULL WHERE device_id=?');
+        $this->api->execute(array_values($args), 'UPDATE token SET apns=NULL WHERE device_id=?');
+        $this->api->execute(array_values($args), 'UPDATE token SET fcmv1=NULL WHERE device_id=?');
+    }
+
+    public function EnregistrerChoix(RequestInterface $request, array $args)
+    {
+        $this->api->execute([...$_POST, ...$args], 'UPDATE infos_membre(notifications) SET notifications=? WHERE id_groupe=uuid_to_bin(?,0) AND id_internaute=?');
+    }
+}

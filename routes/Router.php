@@ -8,7 +8,7 @@ use Koyok\democratia\middleware\{ErrorFormatMiddleware, JWTMiddleware, OutputFor
 use Laminas\Diactoros\{ResponseFactory, ServerRequestFactory};
 use League\Container\Container;
 use League\Route\Strategy\JsonStrategy;
-use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\{RequestInterface, ServerRequestInterface};
 
 final class Router
 {
@@ -26,6 +26,9 @@ final class Router
 
     public static string $JWT_ATTRIBUTE = 'JWT_KEY';
 
+    /**
+     * @return array{router: \League\Route\Router, request: RequestInterface}
+     */
     public static function GetInstace(): array
     {
         if (Router::$router == null && Router::$request == null) {

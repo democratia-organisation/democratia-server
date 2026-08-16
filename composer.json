@@ -12,7 +12,8 @@
     "laminas/laminas-httphandlerrunner": "^2.13",
     "league/container": "^5.2",
     "haydenpierce/class-finder": "^0.6.0",
-    "jobcloud/php-kafka-lib": "^2.0"
+    "jobcloud/php-kafka-lib": "^2.0",
+    "guzzlehttp/guzzle": "^8.0"
   },
   "config": {
     "allow-plugins": {
@@ -23,8 +24,7 @@
   "require-dev": {
     "jetbrains/phpstorm-stubs": "dev-master",
     "laravel/pint": "^1.29",
-    "pestphp/pest": "^4.7",
-    "guzzlehttp/guzzle": "^8.0"
+    "pestphp/pest": "^4.7"
   },
   "autoload-dev": {
     "psr-4": {

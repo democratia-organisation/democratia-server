@@ -13,50 +13,14 @@ final class TestCase extends BaseTestCase
 
     public function get(string $url)
     {
-        $url = getenv('URL');
-        $env = getenv('ENVIRONNEMENT');
-        if ($env == 'production') {
-            $url = "https://$url:443";
-        } elseif ($env == 'developpment') {
-            $url = "http://$url:80";
-        }
-        $baseArray = [
-            'base_uri' => $url,
-            'http_errors' => false,
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ],
-        ];
-        if ($this->token != '') {
-            $baseArray['headers']['Authorization'] = "Bearer $this->token";
-        }
-        $this->client = new Client($baseArray);
+        $this->Initialize();
 
         return $this->client->get($url);
     }
 
     public function post(string $url, array $parameters = [])
     {
-        $url = getenv('URL');
-        $env = getenv('ENVIRONNEMENT');
-        if ($env == 'production') {
-            $url = "https://$url:443";
-        } elseif ($env == 'developpment') {
-            $url = "http://$url:80";
-        }
-        $baseArray = [
-            'base_uri' => $url,
-            'http_errors' => false,
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ],
-        ];
-        if ($this->token != '') {
-            $baseArray['headers']['Authorization'] = "Bearer: $this->token";
-        }
-        $this->client = new Client($baseArray);
+        $this->Initialize();
 
         return $this->client->post($url, [
             'body' => json_encode($parameters),
@@ -65,32 +29,30 @@ final class TestCase extends BaseTestCase
 
     public function patch(string $url, array $parameters = [])
     {
-        $url = getenv('URL');
-        $env = getenv('ENVIRONNEMENT');
-        if ($env == 'production') {
-            $url = "https://$url:443";
-        } elseif ($env == 'developpment') {
-            $url = "http://$url:80";
-        }
-        $baseArray = [
-            'base_uri' => $url,
-            'http_errors' => false,
-            'headers' => [
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ],
-        ];
-        if ($this->token != '') {
-            $baseArray['headers']['Authorization'] = "Bearer: $this->token";
-        }
-        $this->client = new Client($baseArray);
+        $this->Initialize();
 
         return $this->client->patch($url, [
             'body' => json_encode($parameters),
         ]);
     }
 
+    public function put(string $url, array $parameters = [])
+    {
+        $this->Initialize();
+
+        return $this->client->put($url, [
+            'body' => json_encode($parameters),
+        ]);
+    }
+
     public function delete(string $url)
+    {
+        $this->Initialize();
+
+        return $this->client->delete($url);
+    }
+
+    private function Initialize(): void
     {
         $url = getenv('URL');
         $env = getenv('ENVIRONNEMENT');
@@ -111,7 +73,5 @@ final class TestCase extends BaseTestCase
             $baseArray['headers']['Authorization'] = "Bearer: $this->token";
         }
         $this->client = new Client($baseArray);
-
-        return $this->client->delete($url);
     }
 }
