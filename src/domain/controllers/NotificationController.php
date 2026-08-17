@@ -35,21 +35,18 @@ final class NotificationController
             $client = new Client($baseArray);
             $response = $client->post("/token?grant_type=client_credentials&client_id=$appID&client_secret=$secretID&scope=https://wns.windows.com/.default/");
         }
-        $service = $_POST['platform'];
-        $this->api->execute([$_POST['token'], $args['deviceId']], "UPDATE token SET $service=? WHERE device_id=?");
+        $this->api->execute([$_POST['platform'], $_POST['token'], $args['deviceId']], 'UPDATE `token` SET `type_device`=?, `token=?` WHERE `device_id`=?');
 
         return $response;
     }
 
     public function DeleteNotification(RequestInterface $request, array $args)
     {
-        $this->api->execute(array_values($args), 'UPDATE token SET wns=NULL WHERE device_id=?');
-        $this->api->execute(array_values($args), 'UPDATE token SET apns=NULL WHERE device_id=?');
-        $this->api->execute(array_values($args), 'UPDATE token SET fcmv1=NULL WHERE device_id=?');
+        $this->api->execute(array_values($args), 'DELETE FROM token WHERE device_id=?');
     }
 
     public function EnregistrerChoix(RequestInterface $request, array $args)
     {
-        $this->api->execute([...$_POST, ...$args], 'UPDATE infos_membre(notifications) SET notifications=? WHERE id_groupe=uuid_to_bin(?,0) AND id_internaute=?');
+        $this->api->execute([...$_POST, ...$args], 'UPDATE infos_membre(notifications) SET notifications=? WHERE id_groupe=uuid_to_bin(?,1) AND id_internaute=uuid_to_bin(?,1)');
     }
 }
