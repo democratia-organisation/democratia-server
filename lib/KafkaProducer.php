@@ -20,6 +20,7 @@ final class KafkaProducer
             'token' => $options->token,
             'title' => $options->title,
             'body' => $options->body,
+            'type' => $options->type,
             'data' => [
                 'order_id' => uniqid('order_id'),
                 'priority' => $metadata->getPriority(),
