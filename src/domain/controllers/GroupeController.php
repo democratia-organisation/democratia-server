@@ -18,7 +18,7 @@ final class GroupeController
 
     public function GetThematiquesDUnGroupe(ServerRequestInterface $request, array $args): array
     {
-        return $this->api->execute([$args['idGroupe']], 'SELECT budget_thematique, BIN_TO_UUID(tg.id_groupe) AS id_groupe, tg.id_thematique, nom_thematique, g.budget FROM theme_groupe tg INNER JOIN thematique t ON tg.id_thematique = t.id_thematique INNER JOIN groupe g ON g.id_groupe = tg.id_groupe  WHERE tg.id_groupe=UUID_TO_BIN(?,1)');
+        return $this->api->execute([$args['idGroupe']], 'SELECT budget_thematique, BIN_TO_UUID(tg.id_groupe,1) AS id_groupe, tg.id_thematique, nom_thematique, g.budget FROM theme_groupe tg INNER JOIN thematique t ON tg.id_thematique = t.id_thematique INNER JOIN groupe g ON g.id_groupe = tg.id_groupe  WHERE tg.id_groupe=UUID_TO_BIN(?,1)');
     }
 
     public function GetImageDeGroupe(ServerRequestInterface $request, array $args): ResponseInterface

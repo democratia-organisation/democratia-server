@@ -28,7 +28,6 @@ final class NotificationController
                 'http_errors' => false,
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
-                    'Host' => 'login.microsoftonline.com',
                     'Content-Length' => 160,
                 ],
             ];

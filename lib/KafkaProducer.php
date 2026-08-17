@@ -2,6 +2,8 @@
 
 namespace Koyok\democratia\lib;
 
+use DateInterval;
+use DateTimeImmutable;
 use Jobcloud\Kafka\Message\KafkaProducerMessage;
 use Jobcloud\Kafka\Producer\KafkaProducerBuilder;
 use Koyok\democratia\middleware\ServeurConfiguration;
@@ -9,24 +11,30 @@ use RuntimeException;
 
 final class KafkaProducer
 {
-    public function Produce(string $pushChannel, KafkaOptions $options): void
+    public function Produce(KafkaOptions $options, KafkaMetaData $metadata): void
     {
         $producer = KafkaProducerBuilder::create()
             ->withAdditionalBroker(getenv('KAFKA_URL'))
             ->build();
         $payload = [
-            'token' => $pushChannel,
+            'token' => $options->token,
             'title' => $options->title,
             'body' => $options->body,
             'data' => [
                 'order_id' => uniqid('order_id'),
-                'type' => 'promo',
+                'priority' => $metadata->getPriority(),
+                'expiration' => new DateTimeImmutable('now')->add(new DateInterval('PT3M')),
+                'type_notification' => $metadata->getTypeNotification(),
             ],
         ];
+        if ($metadata->authorize_token != null) {
+            $payload['data']['authorize_token'] = $metadata->authorize_token;
+        }
+        if ($metadata->url != null) {
+            $payload['data']['url'] = $metadata->url;
+        }
         $message = KafkaProducerMessage::create($options->topic, $options->nombreDOffsetPublications)
-            ->withKey('asdf-asdf-asfd-asdf')
-            ->withBody(json_encode($payload))
-            ->withHeaders(['key' => 'value']);
+            ->withBody(json_encode($payload));
 
         $producer->produce($message);
 
