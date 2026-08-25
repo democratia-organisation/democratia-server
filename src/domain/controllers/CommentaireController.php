@@ -3,7 +3,7 @@
 namespace Koyok\democratia\domain\controllers;
 
 use Koyok\democratia\data\query\Api;
-use Koyok\democratia\lib\CodeDeRetourApi;
+use Koyok\democratia\lib\{CodeDeRetourApi, KafkaMetaData, KafkaOptions, KafkaProducer};
 use Laminas\Diactoros\Response;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 
@@ -24,8 +24,20 @@ final class CommentaireController
     public function PostMessage(ServerRequestInterface $request): ResponseInterface
     {
         $response = new Response;
-        $contenu = $this->api->execute($_POST, 'INSERT INTO commentaire (contenu_message,horodatage,id_groupe,id_internaute,id_proposition)VALUES (?,?,?,?,?);');
-        if ($contenu['success'] == true) {
+        $contenu = $this->api->execute(json_decode($request->getBody()->getContents(), true), 'INSERT INTO commentaire (contenu_message,horodatage,id_groupe,id_internaute,id_proposition)VALUES (?,?,?,?,?);');
+        if ($contenu['sucess'] == true) {
+            $broker = new KafkaProducer;
+            $options = new KafkaOptions()
+                ->setTitle('Democratia : Nouveau message')
+                ->setBody(json_decode($request->getBody()->getContents(), true)[0])
+                ->setTopic('mobile-notification-topic');
+            $metadata = new KafkaMetaData()->setPriority('medium')->setTypeNotification('normal');
+            $result = $this->api->execute([], 'SELECT T.device_id, T.token, T.type_device from token T INNER JOIN infos_membre ifo on T.id_internaute = ifo.id_internaute WHERE notifications & 2048 = 1');
+            foreach ($result as $valeurs) {
+                $options = $options->setToken($valeurs['token'])->setType($valeurs['type_device']);
+                $broker->Produce($options, $metadata);
+            }
+
             return $response->withStatus($contenu['code']);
         } else {
             throw new \Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);

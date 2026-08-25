@@ -6,10 +6,8 @@ use Exception;
 use Koyok\democratia\lib\CodeDeRetourApi;
 use Koyok\democratia\routes\Router;
 use Laminas\Diactoros\Response\JsonResponse;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\MiddlewareInterface;
-use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
+use Psr\Http\Server\{MiddlewareInterface, RequestHandlerInterface};
 
 final class JWTMiddleware implements MiddlewareInterface
 {
@@ -17,7 +15,17 @@ final class JWTMiddleware implements MiddlewareInterface
     {
         $config = new ServeurConfiguration;
         $config->Configure();
-        $value = $config->JWTConfiguration($request->getUri()->getPath(), $request->getMethod());
+        $param = null;
+        $path = $request->getUri()->getPath();
+        if ($path == '/user/refresh' || $path == '/user/login') {
+            $stream = $request->getBody();
+            $content = $stream->getContents();
+            if ($stream->isSeekable()) {
+                $stream->rewind();
+            }
+            $param = json_decode($content, true);
+        }
+        $value = $config->JWTConfiguration($request->getUri()->getPath(), $request->getMethod(), $param);
         if (\is_array($value)) {
             return new JsonResponse($value, CodeDeRetourApi::OK->value);
         } elseif (\is_string($value)) {

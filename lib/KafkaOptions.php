@@ -16,13 +16,45 @@ final class KafkaOptions
 
     public string $token;
 
-    public function __construct(string $title, string $body, string $topic, int $nombreDOffsetPublications, string $token, string $type)
+    public function setTitle(string $title): KafkaOptions
     {
         $this->title = $title;
-        $this->body = $body;
+
+        return $this;
+    }
+
+    public function setTopic(string $topic): KafkaOptions
+    {
         $this->topic = $topic;
-        $this->nombreDOffsetPublications = $nombreDOffsetPublications;
+
+        return $this;
+    }
+
+    public function setToken(string $token): KafkaOptions
+    {
         $this->token = $token;
+
+        return $this;
+    }
+
+    public function setBody(string $body): KafkaOptions
+    {
+        $this->body = $body;
+
+        return $this;
+    }
+
+    public function setNombreDOffsetPublications(int $nombreDOffsetPublications): KafkaOptions
+    {
+        $this->nombreDOffsetPublications = $nombreDOffsetPublications;
+
+        return $this;
+    }
+
+    public function setType(string $type): KafkaOptions
+    {
         $this->type = $type;
+
+        return $this;
     }
 }

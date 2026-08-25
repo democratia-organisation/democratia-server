@@ -36,7 +36,7 @@ final class InternauteController
 
     public function Login(ServerRequestInterface $request): array
     {
-        return $this->api->execute($_POST, 'SELECT * FROM internaute WHERE courriel=? AND hashageMDP=?');
+        return $this->api->execute(json_decode($request->getBody()->getContents(), true), 'SELECT nom_internaute, prenom_internaute, adresse_postale, courriel, bin_to_uuid(id_internaute, 1) as id_internaute, hashageMDP FROM internaute WHERE courriel=? AND hashageMDP=?');
     }
 
     public function SupprimerInternaute(ServerRequestInterface $request, array $args): array
@@ -48,20 +48,20 @@ final class InternauteController
 
     public function GetInternaute(ServerRequestInterface $request, array $args): array
     {
-        return $this->api->execute([$args['idInternaute']], 'SELECT * FROM internaute WHERE id_internaute=uuid_to_bin(?,1)');
+        return $this->api->execute([$args['idInternaute']], 'SELECT prenom_internaute, adresse_postale, courriel, bin_to_uuid(id_internaute, 1) as id_internaute, hashageMDP FROM internaute WHERE id_internaute=uuid_to_bin(?,1)');
     }
 
     public function CreerInternaute(ServerRequestInterface $request): array
     {
         $requete = $this->api->tryGetAction('CreerUtilisateur', PostMethode::class);
 
-        return $this->api->execute($_POST, $requete);
+        return $this->api->execute(json_decode($request->getBody()->getContents(), true), $requete);
     }
 
     public function ModifierInternaute(ServerRequestInterface $request): array
     {
         $requete = $this->api->tryGetAction('ModifInfoInternaute', PatchMethode::class);
 
-        return $this->api->execute($_POST, $requete);
+        return $this->api->execute(json_decode($request->getBody()->getContents(), true), $requete);
     }
 }

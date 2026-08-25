@@ -12,20 +12,6 @@ final class KafkaMetaData
 
     private string $type_notification;
 
-    public function __construct(string $url, string $authorize_token, string $priority, string $type_notification)
-    {
-        if ($type_notification != 'normal' && $type_notification != 'background') {
-            throw new \Exception('Error Processing Request', 1);
-        }
-        if ($priority != 'low' && $priority != 'medium' && $priority != 'high') {
-            throw new \Exception('Error Processing Request', 1);
-        }
-        $this->url = $url;
-        $this->authorize_token = $authorize_token;
-        $this->priority = $priority;
-        $this->type_notification = $type_notification;
-    }
-
     public function getPriority(): string
     {
         return $this->priority;
@@ -36,19 +22,37 @@ final class KafkaMetaData
         return $this->type_notification;
     }
 
-    public function setTypeNotification(string $notification): void
+    public function setTypeNotification(string $notification): KafkaMetaData
     {
         if ($notification != 'normal' && $notification != 'background') {
             throw new \Exception('Error Processing Request', 1);
         }
         $this->type_notification = $notification;
+
+        return $this;
     }
 
-    public function setPriority(string $priority): void
+    public function setUrl(string $url): KafkaMetaData
+    {
+        $this->url = $url;
+
+        return $this;
+    }
+
+    public function setAuthorizeToken(string $authorizeToken): KafkaMetaData
+    {
+        $this->authorize_token = $authorizeToken;
+
+        return $this;
+    }
+
+    public function setPriority(string $priority): KafkaMetaData
     {
         if ($priority != 'low' && $priority != 'medium' && $priority != 'high') {
             throw new \Exception('Error Processing Request', 1);
         }
         $this->priority = $priority;
+
+        return $this;
     }
 }

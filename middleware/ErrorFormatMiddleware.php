@@ -28,7 +28,7 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
         $code = $errorCode < 400 ? CodeDeRetourApi::InternalServerError->value : $errorCode;
         http_response_code($code);
         $reponse = [
-            'success' => false,
+            'sucess' => false,
             'message' => 'Une erreur inattendu est survenu',
         ];
         if ($code == CodeDeRetourApi::Malicious->value && $isInProduction) {

@@ -23,8 +23,8 @@ final class ThematiqueController
 
     public function CreerThematique(ServerRequestInterface $request): ResponseInterface
     {
-        $response = $this->api->execute([, $_POST['nomThematique']], 'INSERT INTO thematique (nom_thematique) VALUES (?)');
-        if ($response['success'] == true) {
+        $response = $this->api->execute([json_decode($request->getBody()->getContents(), true)['nomThematique']], 'INSERT INTO thematique (nom_thematique) VALUES (?)');
+        if ($response['sucess'] == true) {
             return new Response(CodeDeRetourApi::Created->value);
         } else {
             throw new \Exception('Error pour insérer la novelle thématique', CodeDeRetourApi::InternalServerError->value);

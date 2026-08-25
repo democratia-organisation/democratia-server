@@ -25,7 +25,7 @@ final class GroupeController
     {
 
         $paletteTitle = '';
-        $result = $this->api->execute([$args['idInternaute']], 'SELECT bin_to_uuid(g.id_groupe, 1) AS id_groupe, g.image, id_internaute FROM groupe g INNER JOIN infos_membre ifo ON ifo.id_groupe = g.id_groupe WHERE ifo.id_internaute = ?;');
+        $result = $this->api->execute([$args['idInternaute']], 'SELECT bin_to_uuid(g.id_groupe, 1) AS id_groupe, g.image, bin_to_uuid(id_internaute,1) AS id_internaute FROM groupe g INNER JOIN infos_membre ifo ON ifo.id_groupe = g.id_groupe WHERE ifo.id_internaute = uuid_to_bin(?,1)');
         foreach ($result['data'] as $key => $data) {
             $fichierPath = ImageManager::GetImage($data['image']);
             if ($key == 0) {
@@ -55,17 +55,17 @@ final class GroupeController
 
     public function AjouterGroupe(ServerRequestInterface $request): array
     {
-        return $this->api->execute($_POST, 'INSERT INTO groupe (id_groupe,nom_groupe,couleur_groupe,budget,nbj_dft_vote,nbj_dft_discuss) VALUES (UUID_TO_BIN(?,1),?,?,?,?,?)');
+        return $this->api->execute(json_decode($request->getBody()->getContents(), true), 'INSERT INTO groupe (id_groupe,nom_groupe,couleur_groupe,budget,nbj_dft_vote,nbj_dft_discuss) VALUES (UUID_TO_BIN(?,1),?,?,?,?,?)');
     }
 
     public function AjouterTheme(ServerRequestInterface $request): array
     {
-        return $this->api->execute($_POST, 'INSERT INTO theme_groupe (id_groupe, id_thematique, budget_thematique) VALUES (UUID_TO_BIN(?,1),?,?)');
+        return $this->api->execute(json_decode($request->getBody()->getContents(), true), 'INSERT INTO theme_groupe (id_groupe, id_thematique, budget_thematique) VALUES (UUID_TO_BIN(?,1),?,?)');
     }
 
     public function AjouterInternaute(ServerRequestInterface $request): array
     {
-        return $this->api->execute($_POST, 'INSERT INTO infos_membre (id_groupe,id_internaute,id_role,id_notification)VALUES (UUID_TO_BIN(?,1),?,?,?');
+        return $this->api->execute(json_decode($request->getBody()->getContents(), true), 'INSERT INTO infos_membre (id_groupe,id_internaute,id_role,id_notification)VALUES (UUID_TO_BIN(?,1),?,?,?');
     }
 
     public function PublierImageGroupe(ServerRequestInterface $request, array $args): array

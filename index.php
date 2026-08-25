@@ -12,11 +12,6 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PATCH, DELETE, PUT');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-$requestMethod = $_SERVER['REQUEST_METHOD'];
-if ($requestMethod === 'POST' || $requestMethod == 'PATCH' || $requestMethod == 'PUT') {
-    $jsonRaw = file_get_contents('php://input');
-    $_POST = json_decode($jsonRaw, true);
-}
 [$router, $request] = Router::GetInstace();
 Router::SetMiddleware();
 Router::SetRoute();

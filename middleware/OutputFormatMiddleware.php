@@ -25,7 +25,7 @@ final class OutputFormatMiddleware implements MiddlewareInterface
 
     public function OutputFormating(array $retour): array
     {
-        if (empty($retour['data']) && $retour['success'] === true) {
+        if (empty($retour['data']) && $retour['sucess'] === true) {
             $retour['message'] = 'Connexion réussie mais aucun résultat trouvé pour cette requête.';
             $retour['code'] = CodeDeRetourApi::NoContent->value;
         }
