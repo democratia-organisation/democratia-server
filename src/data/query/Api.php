@@ -137,10 +137,7 @@ final class Api
 
             $valeurRetourne = $requetePrepare->fetchAll(PDO::FETCH_ASSOC);
 
-            // DEBUG : On écrit dans les logs Docker pour voir si on a trouvé Marie
-            error_log('Lignes trouvées dans MySQL : '.count($valeurRetourne));
-
-            return $valeurRetourne; // On renvoie TOUJOURS le tableau (vide ou plein)
+            return $valeurRetourne;
         } catch (PDOException $e) {
             error_log('Erreur SQL : '.$e->getMessage());
             throw new Exception('Erreur SQL : '.$e->getMessage(), 500);

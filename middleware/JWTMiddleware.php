@@ -17,7 +17,7 @@ final class JWTMiddleware implements MiddlewareInterface
         $config->Configure();
         $param = null;
         $path = $request->getUri()->getPath();
-        if ($path == '/user/refresh' || $path == '/user/login') {
+        if ($path == '/users/refresh' || $path == '/users/login') {
             $stream = $request->getBody();
             $content = $stream->getContents();
             if ($stream->isSeekable()) {
