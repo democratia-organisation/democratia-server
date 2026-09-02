@@ -11,8 +11,9 @@
     "laminas/laminas-diactoros": "^3.8",
     "laminas/laminas-httphandlerrunner": "^2.13",
     "league/container": "^5.2",
-    "guzzlehttp/guzzle": "^7.13",
-    "haydenpierce/class-finder": "^0.6.0"
+    "haydenpierce/class-finder": "^0.6.0",
+    "jobcloud/php-kafka-lib": "^2.0",
+    "guzzlehttp/guzzle": "^8.0"
   },
   "config": {
     "allow-plugins": {

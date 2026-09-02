@@ -15,7 +15,7 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
         try {
             return $handler->handle($request);
         } catch (Throwable $th) {
-            [$_, $_, $isInDeveloppment, $isInProduction] = new ServeurConfiguration()->Configure();
+            [$isInDeveloppment, $isInProduction] = ServeurConfiguration::EnvDetermination();
             [$retour, $code] = $this->ErrorFormating($th, $isInProduction, $isInDeveloppment);
 
             return new JsonResponse($retour, $code);
@@ -28,7 +28,7 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
         $code = $errorCode < 400 ? CodeDeRetourApi::InternalServerError->value : $errorCode;
         http_response_code($code);
         $reponse = [
-            'success' => false,
+            'sucess' => false,
             'message' => 'Une erreur inattendu est survenu',
         ];
         if ($code == CodeDeRetourApi::Malicious->value && $isInProduction) {

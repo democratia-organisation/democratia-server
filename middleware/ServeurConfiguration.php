@@ -43,7 +43,7 @@ final class ServeurConfiguration
         return [$this->uri, $this->client, $this->isInDeveloppment, $this->isInProduction];
     }
 
-    public function JWTConfiguration(string $requete, string $requestMethod): mixed
+    public function JWTConfiguration(string $requete, string $requestMethod, ?array $body): mixed
     {
         $header = getallheaders();
         $jwtChecker = new JwtChecker($this->uri, $this->client);
@@ -57,14 +57,14 @@ final class ServeurConfiguration
                     throw new Exception('Aucun acces', CodeDeRetourApi::Malicious->value);
                 }
             } elseif ($requete == '/users/refresh' && $requestMethod == 'POST') {
-                return $jwtChecker->GenerateKey($_POST[0]);
+                return $jwtChecker->GenerateKey($body[0]);
 
             } else {
                 throw new Exception('Entête incorrect', CodeDeRetourApi::Unauthorized->value);
             }
         } else {
             if ($requete == '/users/login' && $requestMethod == 'POST') {
-                $jwtChecker->arrayChecker[3] = new SubjectChecker($_POST[0]);
+                $jwtChecker->arrayChecker[3] = new SubjectChecker($body[0]);
             }
             $jwtChecker->CheckJWT($header);
 

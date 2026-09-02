@@ -3,7 +3,7 @@ FROM php:8-fpm-alpine@sha256:41848df84031c4fe6e898f79461ec62edc4c7008e9a5e361e55
 LABEL com.democratia.server="1.0.0"
 
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
-RUN install-php-extensions pdo_mysql gd zip opcache
+RUN install-php-extensions pdo_mysql gd zip opcache rdkafka
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

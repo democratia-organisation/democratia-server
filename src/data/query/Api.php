@@ -38,7 +38,7 @@ final class Api
         $this->valeurRetourne = null;
         $this->isSuccess = true;
         $this->arrayRetour = [
-            'success' => $this->isSuccess,
+            'sucess' => $this->isSuccess,
             'message' => $this->messageDeRetour,
             'data' => $this->valeurRetourne,
         ];
@@ -64,7 +64,7 @@ final class Api
         $pdo = $this->connexionBaseDeDonne();
         $this->valeurRetourne = $this->executeRequete($pdo, $requete, $parameters);
         if ($this->codeDeRetourApi == CodeDeRetourApi::OK->value) {
-            $this->messageDeRetour = 'Ressource obtenu avec success';
+            $this->messageDeRetour = 'Ressource obtenu avec sucess';
         }
 
         return $this->getTabRetour();
@@ -73,7 +73,7 @@ final class Api
 
     private function getTabRetour(): array
     {
-        $this->arrayRetour['success'] = $this->isSuccess;
+        $this->arrayRetour['sucess'] = $this->isSuccess;
         $this->arrayRetour['message'] = $this->messageDeRetour;
         $this->arrayRetour['data'] = $this->valeurRetourne;
         $this->arrayRetour['code'] = $this->codeDeRetourApi;
@@ -137,10 +137,7 @@ final class Api
 
             $valeurRetourne = $requetePrepare->fetchAll(PDO::FETCH_ASSOC);
 
-            // DEBUG : On écrit dans les logs Docker pour voir si on a trouvé Marie
-            error_log('Lignes trouvées dans MySQL : '.count($valeurRetourne));
-
-            return $valeurRetourne; // On renvoie TOUJOURS le tableau (vide ou plein)
+            return $valeurRetourne;
         } catch (PDOException $e) {
             error_log('Erreur SQL : '.$e->getMessage());
             throw new Exception('Erreur SQL : '.$e->getMessage(), 500);
