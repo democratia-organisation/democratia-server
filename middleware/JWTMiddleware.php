@@ -17,6 +17,7 @@ final class JWTMiddleware implements MiddlewareInterface
         $config->Configure();
         $param = null;
         $path = $request->getUri()->getPath();
+        $isNotif = str_contains($path, '/notifications');
         if ($path == '/users/refresh' || $path == '/users/login') {
             $stream = $request->getBody();
             $content = $stream->getContents();

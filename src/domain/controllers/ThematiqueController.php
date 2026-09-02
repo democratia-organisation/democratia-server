@@ -9,12 +9,7 @@ use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 
 final class ThematiqueController
 {
-    private Api $api;
-
-    public function __construct(Api $api)
-    {
-        $this->api = $api;
-    }
+    public function __construct(private Api $api) {}
 
     public function GetAllTheme(ServerRequestInterface $request): array
     {

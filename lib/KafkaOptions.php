@@ -10,7 +10,7 @@ final class KafkaOptions
 
     public string $topic;
 
-    public int $nombreDOffsetPublications;
+    public int $nombreDOffsetPublications = 0;
 
     public string $type;
 

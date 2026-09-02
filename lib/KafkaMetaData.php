@@ -4,9 +4,9 @@ namespace Koyok\democratia\lib;
 
 final class KafkaMetaData
 {
-    public ?string $url;
+    public ?string $url = null;
 
-    public ?string $authorize_token;
+    public ?string $authorize_token = null;
 
     private string $priority;
 
@@ -28,6 +28,18 @@ final class KafkaMetaData
             throw new \Exception('Error Processing Request', 1);
         }
         $this->type_notification = $notification;
+
+        return $this;
+    }
+
+    public function FromString(array $metadata): KafkaMetaData
+    {
+        if (! empty($metadata['url'])) {
+            $this->url = $metadata['url'];
+        }
+        if (! empty($metadata['authorize_token'])) {
+            $this->url = $metadata['authorize_token'];
+        }
 
         return $this;
     }

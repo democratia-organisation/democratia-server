@@ -12,7 +12,7 @@ final class NotificationRoute implements RouterInterface
         [$router, $_] = Router::GetInstace();
         Router::SetContainer(NotificationController::class);
         $router->group('/notifications', function (RouteGroup $route) {
-            $route->patch('/{deviceId}', [NotificationController::class, 'RegitreNotification']);
+            $route->patch('/{idInternaute:uuid}/{deviceId}', [NotificationController::class, 'RegitreNotification']);
             $route->delete('/{deviceId}', [NotificationController::class, 'DeleteNotification']);
             $route->patch('/choixUtilisateur/{idGroupe:uuid}/{idInternaute:uuid}', [NotificationController::class, 'EnregistrerChoix']);
         });

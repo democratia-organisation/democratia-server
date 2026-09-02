@@ -16,12 +16,7 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 final class InternauteController
 {
-    private Api $api;
-
-    public function __construct(Api $api)
-    {
-        $this->api = $api;
-    }
+    public function __construct(private Api $api) {}
 
     public function GetGroupe(ServerRequestInterface $request, array $args): array
     {

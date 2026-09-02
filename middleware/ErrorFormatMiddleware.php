@@ -15,7 +15,7 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
         try {
             return $handler->handle($request);
         } catch (Throwable $th) {
-            [$_, $_, $isInDeveloppment, $isInProduction] = new ServeurConfiguration()->Configure();
+            [$isInDeveloppment, $isInProduction] = ServeurConfiguration::EnvDetermination();
             [$retour, $code] = $this->ErrorFormating($th, $isInProduction, $isInDeveloppment);
 
             return new JsonResponse($retour, $code);
