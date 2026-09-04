@@ -5,7 +5,7 @@ namespace Tests;
 use GuzzleHttp\Client;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 
-final class TestCase extends BaseTestCase
+class TestCase extends BaseTestCase
 {
     private Client $client;
 
@@ -56,6 +56,7 @@ final class TestCase extends BaseTestCase
     {
         $url = getenv('URL');
         $env = getenv('ENVIRONNEMENT');
+        $this->token = getenv('PUBLIC_KEY');
         if ($env == 'production') {
             $url = "https://$url:443";
         } elseif ($env == 'developpment') {

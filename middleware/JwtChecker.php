@@ -4,20 +4,18 @@ namespace Koyok\democratia\middleware;
 
 use Exception;
 use Jose\Bundle\JoseFramework\DependencyInjection\Source\KeyManagement\JWKSetSource\JWKSet;
+use Jose\Component\Checker\{AlgorithmChecker, AudienceChecker, ClaimCheckerManager, ExpirationTimeChecker, HeaderCheckerManager, IssuerChecker};
 use Jose\Component\Checker\InvalidClaimException;
-use Jose\Component\{Checker, Signature};
 use Jose\Component\Core\{AlgorithmManager, JWK};
 use Jose\Component\KeyManagement\JWKFactory;
-use Jose\Component\Signature\JWS;
-use Koyok\democratia\domain\Extension;
+use Jose\Component\Signature\Algorithm\{ES256, None};
+use Jose\Component\Signature\{JWS, JWSBuilder, JWSTokenSupport, JWSVerifier};
+use Jose\Component\Signature\Serializer\CompactSerializer;
+use Koyok\democratia\domain\Extension\ClockImplementation;
 use Koyok\democratia\lib\CodeDeRetourApi;
 
 final class JwtChecker
 {
-    private string $uri;
-
-    private string $client;
-
     private array $payload;
 
     private JWK|JWKSet $privateKey;
@@ -26,7 +24,7 @@ final class JwtChecker
 
     private JWS $jws;
 
-    private Extension\ClockImplementation $clock;
+    private ClockImplementation $clock;
 
     private static int $REFRESH_TIME = 3600;
 
@@ -34,25 +32,19 @@ final class JwtChecker
 
     public array $arrayChecker;
 
-    private Signature\Serializer\CompactSerializer $jwtSerializer;
+    private CompactSerializer $jwtSerializer;
 
-    public function __construct(string $uri, string $client)
+    public function __construct(private string $uri, private string $client)
     {
-        $this->uri = $uri;
-        $this->client = $client;
-        $this->clock = new Extension\ClockImplementation;
-        $this->algorithmManager = new AlgorithmManager([new Signature\Algorithm\ES256]);
+        $this->algorithmManager = new AlgorithmManager([new ES256]);
+        $this->clock = new ClockImplementation;
+        $this->jwtSerializer = new CompactSerializer;
         $this->arrayChecker = [
-            new Checker\ExpirationTimeChecker(clock: $this->clock),
-            new Checker\IssuerChecker([$this->uri]),
-            new Checker\AudienceChecker($this->client),
+            new ExpirationTimeChecker(clock: $this->clock),
+            new IssuerChecker([$this->uri]),
+            new AudienceChecker($this->client),
         ];
-        $this->jwtSerializer = new Signature\Serializer\CompactSerializer;
-        $algorithmManager = new AlgorithmManager([
-            new Signature\Algorithm\None,
-        ]);
-
-        $jwsBuilder = new Signature\JWSBuilder($algorithmManager);
+        $jwsBuilder = new JWSBuilder(new AlgorithmManager([new None]));
         $jwk = new JWK([
             'kty' => 'none',
         ]);
@@ -81,7 +73,7 @@ final class JwtChecker
     {
 
         $now = $this->clock->now()->getTimestamp();
-        $jwsBuilder = new Signature\JWSBuilder($this->algorithmManager);
+        $jwsBuilder = new JWSBuilder($this->algorithmManager);
         $payloadAcces = json_encode([
             'iss' => $this->uri,
             'aud' => $this->client,
@@ -122,9 +114,9 @@ final class JwtChecker
     public function CheckJWT(array $header): void
     {
         $this->SetJWS($header);
-        $claimChecker = new Checker\ClaimCheckerManager($this->arrayChecker);
-        $jwsVerifier = new Signature\JWSVerifier($this->algorithmManager);
-        $headerCheckerManager = new Checker\HeaderCheckerManager([new Checker\AlgorithmChecker(['ES256'])], [new Signature\JWSTokenSupport]);
+        $claimChecker = new ClaimCheckerManager($this->arrayChecker);
+        $jwsVerifier = new JWSVerifier($this->algorithmManager);
+        $headerCheckerManager = new HeaderCheckerManager([new AlgorithmChecker(['ES256'])], [new JWSTokenSupport]);
         $this->payload = json_decode($this->jws->getPayload(), true);
         try {
             if (! $jwsVerifier->verifyWithKey($this->jws, $this->privateKey, 0)) {

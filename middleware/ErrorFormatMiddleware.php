@@ -15,13 +15,18 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
         try {
             return $handler->handle($request);
         } catch (Throwable $th) {
-            [$isInDeveloppment, $isInProduction] = ServeurConfiguration::EnvDetermination();
+            [$isInDeveloppment, $isInProduction] = ServeurConfigurationMiddleware::EnvDetermination();
             [$retour, $code] = $this->ErrorFormating($th, $isInProduction, $isInDeveloppment);
 
-            return new JsonResponse($retour, $code);
+            return new JsonResponse($retour, status: $code);
         }
     }
 
+    /**
+     * Summary of ErrorFormating
+     *
+     * @return array{0: array{sucess: bool, message: string}, 1: int}|array{0: array{sucess: bool, message: string, file: string, line: int, errorr_type: string, stackTrace: string}, 1: int}
+     */
     public function ErrorFormating(Throwable $e, bool $isInProduction, bool $isInDeveloppment): array
     {
         $errorCode = $e->getCode();

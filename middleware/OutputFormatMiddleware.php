@@ -2,7 +2,6 @@
 
 namespace Koyok\democratia\middleware;
 
-use Laminas\Diactoros\StreamFactory;
 use Psr\Http\Message\{ResponseInterface, ServerRequestInterface};
 use Psr\Http\Server\{MiddlewareInterface, RequestHandlerInterface};
 
@@ -11,21 +10,20 @@ final class OutputFormatMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        $retour = json_decode($response->getBody(), true);
-        if ($retour != null) {
-            $retour = $this->OutputFormating($retour);
-            $stream = new StreamFactory()->createStream('');
-            $response = $response->withBody($stream)->withStatus($retour['code']);
-            $response->getBody()->write(json_encode($retour));
-        }
+        $response = $this->OutputFormating($response);
 
         return $response;
     }
 
-    public function OutputFormating(array $retour): array
+    public function OutputFormating(ResponseInterface $response): ResponseInterface
     {
-        // TODO : formattage issue de Api à implémenter ici
-        return $retour;
+        $retour = json_decode($response->getBody(), true);
+        $retour['sucess'] = $response->getStatusCode() < 299;
+        $retour['message'] = \count($retour) > 0 ? 'Requête réussi' : 'Requêtre réussi sans contenu';
+        $retour['data'] = $retour;
+        $retour['code'] = $response->getStatusCode();
+
+        return $response;
 
     }
 }

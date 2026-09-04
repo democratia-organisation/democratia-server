@@ -2,8 +2,9 @@
 
 namespace Koyok\democratia;
 
-use Koyok\democratia\middleware\{ErrorFormatMiddleware, ServeurConfiguration};
+use Koyok\democratia\middleware\{ErrorFormatMiddleware, ServeurConfigurationMiddleware};
 use Koyok\democratia\routes\Router;
+use Laminas\Diactoros\Response\JsonResponse;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 
 require_once './vendor/autoload.php';
@@ -16,11 +17,13 @@ header('Access-Control-Allow-Headers: Content-Type, Authorization');
 Router::SetMiddleware();
 Router::SetRoute();
 Router::Register();
+
+$emitter = new SapiEmitter;
 try {
     $response = $router->dispatch($request);
-    (new SapiEmitter)->emit($response);
+    $emitter->emit($response);
 } catch (\Throwable $th) {
-    [$isInDeveloppment, $isInProduction] = ServeurConfiguration::EnvDetermination();
-    $response = new ErrorFormatMiddleware()->ErrorFormating($th, $isInProduction, $isInDeveloppment);
-    echo json_encode($response);
+    [$isInDeveloppment, $isInProduction] = ServeurConfigurationMiddleware::EnvDetermination();
+    [$response, $code] = new ErrorFormatMiddleware()->ErrorFormating($th, $isInProduction, $isInDeveloppment);
+    $emitter->emit(new JsonResponse($response, status: $code));
 }

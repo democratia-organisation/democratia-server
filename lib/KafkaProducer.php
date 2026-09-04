@@ -6,7 +6,7 @@ use DateInterval;
 use DateTimeImmutable;
 use Jobcloud\Kafka\Message\KafkaProducerMessage;
 use Jobcloud\Kafka\Producer\KafkaProducerBuilder;
-use Koyok\democratia\middleware\ServeurConfiguration;
+use Koyok\democratia\middleware\ServeurConfigurationMiddleware;
 use RuntimeException;
 
 final class KafkaProducer
@@ -39,7 +39,7 @@ final class KafkaProducer
 
         $producer->produce($message);
 
-        [$isDev, $isProd] = ServeurConfiguration::EnvDetermination();
+        [$isDev, $isProd] = ServeurConfigurationMiddleware::EnvDetermination();
         $flushDuration = $isDev == true ? 20000 : 2000;
         $result = $producer->flush($flushDuration);
 
