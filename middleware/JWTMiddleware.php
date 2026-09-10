@@ -22,7 +22,7 @@ final class JWTMiddleware implements MiddlewareInterface
 
             return $handler->handle($request);
         } else {
-            throw new Exception('Error Processing Request', CodeDeRetourApi::InternalServerError->value);
+            return $handler->handle($request);
         }
     }
 
@@ -63,7 +63,7 @@ final class JWTMiddleware implements MiddlewareInterface
             } elseif ($path == '/users/refresh' && $requestMethod == 'POST') {
                 return $jwtChecker->GenerateKey($body[0]);
             } else {
-                throw new Exception('Error Processing Request', 1);
+                return null;
             }
         }
     }

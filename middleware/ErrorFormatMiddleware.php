@@ -23,7 +23,7 @@ final class ErrorFormatMiddleware implements MiddlewareInterface
     }
 
     /**
-     * Summary of ErrorFormating
+     * formatte l'erreur selon l'environnement de développment
      *
      * @return array{0: array{sucess: bool, message: string}, 1: int}|array{0: array{sucess: bool, message: string, file: string, line: int, errorr_type: string, stackTrace: string}, 1: int}
      */

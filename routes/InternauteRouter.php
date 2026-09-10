@@ -18,7 +18,7 @@ final class InternauteRouter implements RouterInterface
             $route->patch('', [InternauteController::class, 'ModifierInternaute']);
             $route->post('', [InternauteController::class, 'CreerInternaute']);
             $route->delete('/{idInternaute:uuid}', [InternauteController::class, 'SupprimerInternaute']);
-            $route->get('/{email:word}/doublon', [InternauteController::class, 'GetMailDoublon']);
+            $route->get('/{email}/doublon', [InternauteController::class, 'GetMailDoublon']);
             $route->get('/{idInternaute:uuid}', [InternauteController::class, 'GetInternaute']);
 
         });

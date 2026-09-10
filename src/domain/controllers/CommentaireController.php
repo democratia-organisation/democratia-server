@@ -3,7 +3,7 @@
 namespace Koyok\democratia\domain\controllers;
 
 use Koyok\democratia\data\query\Api;
-use Koyok\democratia\lib\{CodeDeRetourApi, KafkaMetaData, KafkaOptions, KafkaProducer};
+use Koyok\democratia\lib\{CodeDeRetourApi, KafkaMobileNotificationMessage, KafkaProducer};
 use Psr\Http\Message\ServerRequestInterface;
 
 final class CommentaireController
@@ -21,11 +21,12 @@ final class CommentaireController
         $contenu = $this->api->execute([...array_values($body[0]), ...array_values($args)], 'INSERT INTO commentaire (contenu_message,horodatage,id_internaute,id_groupe,id_proposition)VALUES (?,?,uuid_to_bin(?,1),uuid_to_bin(?,1),?);');
         if ($contenu['sucess'] == true) {
             $broker = new KafkaProducer;
-            $options = new KafkaOptions()
+            $options = new KafkaMobileNotificationMessage()
                 ->setTitle('Democratia : Nouveau message')
                 ->setBody($body[0]['contenuMessage'])
-                ->setTopic('main-notification-topic');
-            $metadata = new KafkaMetaData()->setPriority('medium')->setTypeNotification('normal');
+                ->setTopic('main-notification-topic')
+                ->setPriority('medium')
+                ->setTypeNotification('normal');
             $resultMail = $this->api->execute([], 'SELECT personnes_a_notifier_mail(1) AS mail_concerned');
             $resultMobile = $this->api->execute([], 'SELECT personnes_a_notifier_mobile(1) AS mobile_concerned');
             if ($resultMail['data'][0]['mail_concerned'] != null) {
@@ -36,7 +37,7 @@ final class CommentaireController
                         ->setToken($valeurs['token'])
                         ->setType($valeurs['type_device'])
                         ->setNombreDOffsetPublications(0);
-                    $broker->Produce($options, $metadata);
+                    $broker->Produce($options);
                 }
             }
             if ($resultMobile['data'][0]['mobile_concerned']) {
@@ -47,7 +48,7 @@ final class CommentaireController
                         ->setToken($valeurs['token'])
                         ->setType($valeurs['type_device'])
                         ->setNombreDOffsetPublications(0);
-                    $broker->Produce($options, $metadata);
+                    $broker->Produce($options);
                 }
             }
 

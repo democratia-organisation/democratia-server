@@ -4,8 +4,7 @@ namespace Koyok\democratia\middleware;
 
 use Exception;
 use Jose\Bundle\JoseFramework\DependencyInjection\Source\KeyManagement\JWKSetSource\JWKSet;
-use Jose\Component\Checker\{AlgorithmChecker, AudienceChecker, ClaimCheckerManager, ExpirationTimeChecker, HeaderCheckerManager, IssuerChecker};
-use Jose\Component\Checker\InvalidClaimException;
+use Jose\Component\Checker\{AlgorithmChecker, AudienceChecker, ClaimCheckerManager, ExpirationTimeChecker, HeaderCheckerManager, InvalidClaimException, IssuerChecker};
 use Jose\Component\Core\{AlgorithmManager, JWK};
 use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\{ES256, None};

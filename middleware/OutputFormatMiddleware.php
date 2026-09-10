@@ -18,7 +18,7 @@ final class OutputFormatMiddleware implements MiddlewareInterface
     public function OutputFormating(ResponseInterface $response): ResponseInterface
     {
         $retour = json_decode($response->getBody(), true);
-        $retour['sucess'] = $response->getStatusCode() < 299;
+        $retour['sucess'] = $response->getStatusCode() < 399;
         $retour['message'] = \count($retour) > 0 ? 'Requête réussi' : 'Requêtre réussi sans contenu';
         $retour['data'] = $retour;
         $retour['code'] = $response->getStatusCode();
